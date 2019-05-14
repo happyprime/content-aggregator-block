@@ -1,0 +1,24 @@
+{
+  "name": "latest-custom-posts",
+  "version": "0.0.1",
+  "description": "Display the latest posts for a specified post type, taxonomy, and term.",
+  "author": "jeremyfelt, Happy Prime",
+  "license": "GPL-2.0-or-later",
+  "devDependencies": {
+    "@wordpress/scripts": "^3.1.0"
+  },
+  "scripts": {
+    "build": "wp-scripts build",
+    "check-engines": "wp-scripts check-engines",
+    "check-licenses": "wp-scripts check-licenses --production",
+    "lint:css": "wp-scripts lint-style '**/*.css'",
+    "lint:js": "wp-scripts lint-js 'src/*.js'",
+    "lint:pkg-json": "wp-scripts lint-pkg-json .",
+    "start": "wp-scripts start",
+    "test:e2e": "wp-scripts test-e2e",
+    "test:unit": "wp-scripts test-unit-js"
+  },
+  "dependencies": {
+    "classnames": "^2.2.6"
+  }
+}
