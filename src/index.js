@@ -391,8 +391,8 @@ registerBlockType( 'happyprime/latest-custom-posts', {
 						<TextControl
 							label="Number of items"
 							value={ itemCount }
-							onChange={ ( itemCount ) => {
-								setAttributes( { itemCount } );
+							onChange={ ( value ) => {
+								setAttributes( { itemCount: Number( value ) } );
 								setState( { triggerRefresh: true, latestPosts: [] } );
 							} }
 						/>
