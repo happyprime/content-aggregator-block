@@ -95,10 +95,10 @@ function render_block( $attributes ) {
 	$post_type = explode( ',', $attributes['customPostType'] );
 
 	$args = array(
-		'post_type' => $post_type[0],
-		'per_page'  => absint( $attributes['itemCount'] ),
-		'order'     => $attributes['order'],
-		'orderby'   => $attributes['orderBy'],
+		'post_type'       => $post_type[0],
+		'posts_per_page'  => absint( $attributes['itemCount'] ),
+		'order'           => $attributes['order'],
+		'orderby'         => $attributes['orderBy'],
 	);
 
 	if ( '' !== $attributes['customTaxonomy'] && 0 < $attributes['termID'] ) {
