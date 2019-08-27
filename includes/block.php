@@ -36,7 +36,7 @@ function register_block() {
 					'type'    => 'array',
 					'default' => array(),
 				),
-				'customTaxRel'  => array(
+				'taxRelation'     => array(
 					'type'    => 'string',
 					'default' => '',
 				),
@@ -81,7 +81,7 @@ function render_block( $attributes ) {
 	$defaults   = array(
 		'customPostType'  => 'post,posts',
 		'customTaxonomy'  => array(),
-		'customTaxRel'    => '',
+		'taxRelation'     => '',
 		'termID'          => 0,
 		'itemCount'       => 3,
 		'order'           => 'desc',
@@ -105,8 +105,8 @@ function render_block( $attributes ) {
 	if ( ! empty( $attributes['customTaxonomy'] ) ) {
 		$tax_query = array();
 
-		if ( '' !== $attributes['customTaxRel'] ) {
-			$tax_query['relation'] = $attributes['customTaxRel'];
+		if ( '' !== $attributes['taxRelation'] ) {
+			$tax_query['relation'] = $attributes['taxRelation'];
 		}
 
 		foreach ( $attributes['customTaxonomy'] as $taxonomy ) {

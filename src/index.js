@@ -91,7 +91,7 @@ registerBlockType( 'happyprime/latest-custom-posts', {
 			type: 'array',
 			default: [],
 		},
-		customTaxRel: {
+		taxRelation: {
 			type: 'string',
 			default: 'AND',
 		},
@@ -196,7 +196,7 @@ registerBlockType( 'happyprime/latest-custom-posts', {
 					} ).catch( error => {
 						setState( {
 							errorMessage: error.message,
-							taxonomyTerms: [],
+							taxonomyTerms: Object.assign( taxonomyTerms, { [ index ]: [] } ),
 							doingTermsFetch: false,
 						} );
 					} );
@@ -209,18 +209,25 @@ registerBlockType( 'happyprime/latest-custom-posts', {
 					triggerRefresh: false,
 				} );
 
-				let restSlug = customPostType.split( ',' )[1];
-				//let termSlug = customTaxonomy.split( ',' )[1];
-
 				let data = {
 					per_page: itemCount,
 					order: order,
 					orderby: orderBy,
 				};
 
-				/*if ( 0 < termID ) {
-					data[ termSlug ] = termID;
-				}*/
+				const restSlug = customPostType.split( ',' )[1];
+
+				customTaxonomy.forEach( ( taxonomy ) => {
+					const termSlug = taxonomy.slug.split( ',' )[1];
+
+					if ( 0 > taxonomy.terms.length ) {
+						return;
+					}
+
+					if ( 'IN' === taxonomy.operator ) {
+						data[ termSlug ] = taxonomy.terms.join( ',' );
+					}
+				} );
 
 				apiFetch( {
 					path: addQueryArgs( '/wp/v2/' + restSlug, data ),
@@ -255,7 +262,7 @@ registerBlockType( 'happyprime/latest-custom-posts', {
 			itemCount,
 			customPostType,
 			customTaxonomy,
-			customTaxRel,
+			taxRelation,
 			order,
 			orderBy,
 			displayPostDate,
@@ -277,7 +284,6 @@ registerBlockType( 'happyprime/latest-custom-posts', {
 		let postTypeOptions   = [];
 		let taxonomySlugs     = [];
 		let taxonomyOptions   = [ { label: 'None', value: '' } ];
-		//let termOptions       = [];
 
 		if ( null === currentTypes ) {
 			currentTypes = [];
@@ -306,11 +312,6 @@ registerBlockType( 'happyprime/latest-custom-posts', {
 				taxonomyOptions.push( { label: tax.name, value: tax.slug + ',' + tax.rest_base } );
 			}
 		} );
-console.log( terms );
-		//terms.forEach( function ( term, index ) {
-		//	termOptions[ index ].push( { label: term.name, value: term.id } );
-			//termObjects = Object.assign( termOptions, { [ index ]: data } ),
-		//} );
 
 		const layoutControls = [
 			{
@@ -371,11 +372,11 @@ console.log( terms );
 							setAttributes( { customTaxonomy: updatedCustomTaxonomy( index, 'slug', value ) } );
 							setState( {
 								triggerTermsRefresh: true,
-								taxonomyTerms: []
+								taxonomyTerms: Object.assign( terms, { [ index ]: [] } ),
 							} );
 						} }
 					/>
-					{ ( taxonomy.slug !== '' && 0 < terms.length ) && (
+					{ ( taxonomy.slug !== '' && 0 < terms[ index ].length ) && (
 						<SelectControl
 							multiple
 							label="Term(s)"
@@ -396,7 +397,7 @@ console.log( terms );
 							label="Show posts with:"
 							selected={ taxonomy.operator }
 							options={ [
-								{ label: 'Any selected terms', value: 'IN’' },
+								{ label: 'Any selected terms', value: 'IN' },
 								{ label: 'All selected terms', value: 'AND' },
 							] }
 							onChange={ ( value ) => {
@@ -415,7 +416,7 @@ console.log( terms );
 							label={ __( 'Remove taxonomy setting' ) }
 							onClick={ () => {
 								if ( 1 === index && 2 === customTaxonomy.length ) {
-									setAttributes( { taxonomyRelationship: '' } );
+									setAttributes( { taxRelation: '' } );
 								}
 								customTaxonomy.splice( index, 1 );
 								setAttributes( { customTaxonomy: [ ...customTaxonomy ] } );
@@ -496,7 +497,6 @@ console.log( terms );
 								setAttributes( {
 									customPostType,
 									customTaxonomy: [ TAXONOMY_SETTING ],
-									//termID: 0
 								} );
 								setState( {
 									triggerRefresh: true,
@@ -515,13 +515,13 @@ console.log( terms );
 								</div>
 								{ ( 1 < customTaxonomy.length ) && (
 									<RadioControl
-										label={ __( 'Relationship' ) }
-										selected={ customTaxRel }
+										label={ __( 'Relation' ) }
+										selected={ taxRelation }
 										options={ [
 											{ label: __( 'And' ), value: 'AND' },
 											{ label: __( 'Or' ), value: 'OR' },
 										] }
-										onChange={ ( option ) => { setAttributes( { customTaxRel: option } ) } }
+										onChange={ ( option ) => { setAttributes( { taxRelation: option } ) } }
 									/>
 								) }
 								{ ( 0 < customTaxonomy.length && 0 < customTaxonomy[0].terms.length ) && (
