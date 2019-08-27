@@ -200,4 +200,13 @@ function enqueue_block_editor_assets() {
 		block_version(),
 		true
 	);
+
+	wp_enqueue_style(
+		'hp-latest-custom-posts',
+		plugins_url( 'css/editor.css', __DIR__ ),
+		array(
+			'wp-edit-blocks',
+		),
+		block_version()
+	);
 }

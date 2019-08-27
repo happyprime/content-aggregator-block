@@ -1,0 +1,17 @@
+.happyprime-block-latest-custom-posts_taxonomy-setting:not(:only-child) {
+	border-bottom: 1px solid #e2e4e7;
+	padding: 20px 0 16px 20px;
+	position: relative;
+}
+
+.happyprime-block-latest-custom-posts_taxonomy-setting:not(:only-child) .components-base-control {
+	margin-bottom: 0;
+}
+
+.happyprime-block-latest-custom-posts_remove-taxonomy-setting {
+	border-radius: 50%;
+	left: 0;
+	padding: 0;
+	position: absolute;
+	top: 0;
+}
