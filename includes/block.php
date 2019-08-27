@@ -33,12 +33,12 @@ function register_block() {
 					'default' => 'post,posts',
 				),
 				'customTaxonomy'  => array(
+					'type'    => 'array',
+					'default' => array(),
+				),
+				'customTaxRel'  => array(
 					'type'    => 'string',
 					'default' => '',
-				),
-				'termID'          => array(
-					'type'    => 'integer',
-					'default' => 0,
 				),
 				'itemCount'       => array(
 					'type'    => 'integer',
@@ -80,7 +80,8 @@ function register_block() {
 function render_block( $attributes ) {
 	$defaults   = array(
 		'customPostType'  => 'post,posts',
-		'customTaxonomy'  => '',
+		'customTaxonomy'  => array(),
+		'customTaxRel'    => '',
 		'termID'          => 0,
 		'itemCount'       => 3,
 		'order'           => 'desc',
@@ -101,16 +102,30 @@ function render_block( $attributes ) {
 		'orderby'         => $attributes['orderBy'],
 	);
 
-	if ( '' !== $attributes['customTaxonomy'] && 0 < $attributes['termID'] ) {
-		$taxonomy = explode( ',', $attributes['customTaxonomy'] );
+	if ( ! empty( $attributes['customTaxonomy'] ) ) {
+		$tax_query = array();
 
-		$args['tax_query'] = array( // phpcs:ignore
-			array(
-				'taxonomy' => $taxonomy[0],
+		if ( '' !== $attributes['customTaxRel'] ) {
+			$tax_query['relation'] = $attributes['customTaxRel'];
+		}
+
+		foreach ( $attributes['customTaxonomy'] as $taxonomy ) {
+			$slug = explode( ',', $taxonomy['slug'] );
+
+			$settings = array(
+				'taxonomy' => $slug[0],
 				'field'    => 'id',
-				'terms'    => $attributes['termID'],
-			),
-		);
+				'terms'    => $taxonomy['terms'],
+			);
+
+			if ( $taxonomy['operator'] ) {
+				$settings['operator'] = $taxonomy['operator'];
+			}
+
+			$tax_query[] = $settings;
+		}
+
+		$args['tax_query'] = $tax_query; // phpcs:ignore
 	}
 
 	$posts = get_posts( $args );
