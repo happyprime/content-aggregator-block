@@ -354,13 +354,44 @@ registerBlockType( 'happyprime/latest-custom-posts', {
 		};
 
 		const updatedCustomTaxonomy = ( index, property, value ) => {
-			return Object.values( {
+			let customTaxonomyUpdates = Object.values( {
 				...customTaxonomy,
 				[ index ]: {
 					...customTaxonomy[ index ],
 					[ property ]: value,
 				}
 			} );
+
+			// Resets the `terms` and `operator` properties when the slug is changed.
+			if ( 'slug' === property && value !== customTaxonomy[ index ].slug ) {
+				customTaxonomyUpdates = Object.values( {
+					...customTaxonomyUpdates,
+					[ index ]: {
+						...customTaxonomyUpdates[ index ],
+						terms: [],
+						operator: undefined,
+					}
+				} );
+			}
+
+			// Handles changes to the `operator` property when terms are changed.
+			if ( 'terms' === property ) {
+				const operatorValue = ( !customTaxonomy[ index ].operator && 1 < value.length )
+					? 'IN'
+					: ( 1 < value.length )
+						? customTaxonomy[ index ].operator
+						: undefined;
+
+				customTaxonomyUpdates = Object.values( {
+					...customTaxonomyUpdates,
+					[ index ]: {
+						...customTaxonomyUpdates[ index ],
+						operator: operatorValue,
+					}
+				} );
+			}
+
+			return customTaxonomyUpdates;
 		}
 
 		const taxonomySetting = ( taxonomy, index ) => {
