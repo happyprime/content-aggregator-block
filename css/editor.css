@@ -1,7 +1,11 @@
 .happyprime-block-latest-custom-posts_taxonomy-setting:not(:only-child) {
 	border-bottom: 1px solid #e2e4e7;
-	padding: 20px 0 16px 20px;
+	padding: 0px 0 12px 32px;
 	position: relative;
+}
+
+.happyprime-block-latest-custom-posts_taxonomy-setting:not(:first-of-type) {
+	padding-top: 16px;
 }
 
 .happyprime-block-latest-custom-posts_taxonomy-setting:not(:only-child) .components-base-control {
@@ -10,8 +14,12 @@
 
 .happyprime-block-latest-custom-posts_remove-taxonomy-setting {
 	border-radius: 50%;
-	left: 0;
+	left: 6px;
 	padding: 0;
 	position: absolute;
-	top: 0;
+	top: 15px;
+}
+
+.happyprime-block-latest-custom-posts_taxonomy .components-base-control.components-radio-control {
+	padding: 16px 0 0 32px;
 }
