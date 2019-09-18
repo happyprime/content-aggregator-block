@@ -505,34 +505,36 @@ registerBlockType( 'happyprime/latest-custom-posts', {
 								} );
 							} }
 						/>
-						{ ( customPostType !== '' ) && (
-							<div className="happyprime-block-latest-custom-posts_taxonomy">
-								{ ( 1 < customTaxonomy.length ) && (
-									<p>{ __( 'Taxonomy Settings' ) }</p>
-								) }
-								<div className="happyprime-block-latest-custom-posts_taxonomy-settings">
-									{ ( 0 < customTaxonomy.length ) && customTaxonomy.map( ( taxonomy, index ) => taxonomySetting( taxonomy, index ) ) }
-								</div>
-								{ ( 1 < customTaxonomy.length ) && (
-									<RadioControl
-										label={ __( 'Relation' ) }
-										selected={ taxRelation }
-										options={ [
-											{ label: __( 'And' ), value: 'AND' },
-											{ label: __( 'Or' ), value: 'OR' },
-										] }
-										onChange={ ( option ) => { setAttributes( { taxRelation: option } ) } }
-									/>
-								) }
-								{ ( 0 < customTaxonomy.length && 0 < customTaxonomy[0].terms.length ) && (
-									<IconButton
-										icon="plus-alt"
-										label={ __( 'Add more taxonomy settings' ) }
-										onClick={ () => setAttributes( { customTaxonomy: customTaxonomy.concat( TAXONOMY_SETTING ) } ) }
-									>{ __( 'Add more taxonomy settings' ) }</IconButton>
+						<div className="happyprime-block-latest-custom-posts_taxonomy">
+							{ ( 1 < customTaxonomy.length ) && (
+								<p>{ __( 'Taxonomy Settings' ) }</p>
+							) }
+							<div className="happyprime-block-latest-custom-posts_taxonomy-settings">
+								{ ( customTaxonomy && 0 < customTaxonomy.length ) ? (
+									customTaxonomy.map( ( taxonomy, index ) => taxonomySetting( taxonomy, index ) )
+								) : (
+									taxonomySetting( TAXONOMY_SETTING, 0 )
 								) }
 							</div>
-						) }
+							{ ( 1 < customTaxonomy.length ) && (
+								<RadioControl
+									label={ __( 'Relation' ) }
+									selected={ taxRelation }
+									options={ [
+										{ label: __( 'And' ), value: 'AND' },
+										{ label: __( 'Or' ), value: 'OR' },
+									] }
+									onChange={ ( option ) => { setAttributes( { taxRelation: option } ) } }
+								/>
+							) }
+							{ ( customTaxonomy && 0 < customTaxonomy.length && customTaxonomy[0].terms && 0 < customTaxonomy[0].terms.length ) && (
+								<IconButton
+									icon="plus-alt"
+									label={ __( 'Add more taxonomy settings' ) }
+									onClick={ () => setAttributes( { customTaxonomy: customTaxonomy.concat( TAXONOMY_SETTING ) } ) }
+								>{ __( 'Add more taxonomy settings' ) }</IconButton>
+							) }
+						</div>
 						{ postLayout === 'grid' &&
 							<RangeControl
 								label={ __( 'Columns' ) }
