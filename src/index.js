@@ -218,13 +218,15 @@ registerBlockType( 'happyprime/latest-custom-posts', {
 				const restSlug = customPostType.split( ',' )[1];
 
 				customTaxonomy.forEach( ( taxonomy ) => {
-					const termSlug = taxonomy.slug.split( ',' )[1];
-
-					if ( 0 > taxonomy.terms.length ) {
+					if ( !taxonomy.slug || 0 > taxonomy.terms.length ) {
 						return;
 					}
 
-					if ( 'IN' === taxonomy.operator ) {
+					const termSlug = taxonomy.slug.split( ',' )[1];
+
+					if ( 'AND' === taxonomy.operator ) {
+						// This space intentionally left blank...
+					} else {
 						data[ termSlug ] = taxonomy.terms.join( ',' );
 					}
 				} );
@@ -376,7 +378,7 @@ registerBlockType( 'happyprime/latest-custom-posts', {
 							} );
 						} }
 					/>
-					{ ( taxonomy.slug !== '' && 0 < terms[ index ].length ) && (
+					{ ( taxonomy.slug !== '' && terms[ index ] && 0 < terms[ index ].length ) && (
 						<SelectControl
 							multiple
 							label="Term(s)"
@@ -391,7 +393,7 @@ registerBlockType( 'happyprime/latest-custom-posts', {
 							} }
 						/>
 					) }
-					{ 1 < taxonomy.terms.length && (
+					{ ( taxonomy.terms && 1 < taxonomy.terms.length ) && (
 						<RadioControl
 							value={ taxonomy.operator }
 							label="Show posts with:"
