@@ -403,11 +403,18 @@ registerBlockType( 'happyprime/latest-custom-posts', {
 							icon="dismiss"
 							label={ __( 'Remove taxonomy setting' ) }
 							onClick={ () => {
-								if ( 1 === index && 2 === customTaxonomy.length ) {
-									setAttributes( { taxRelation: '' } );
-								}
 								customTaxonomy.splice( index, 1 );
+
 								setAttributes( { customTaxonomy: [ ...customTaxonomy ] } );
+
+								if ( 1 === customTaxonomy.length ) {
+									setAttributes( { taxRelation: undefined } );
+								}
+
+								setState( {
+									triggerRefresh: true,
+									latestPosts: [],
+								} );
 							} }
 						/>
 					) }
@@ -566,7 +573,13 @@ registerBlockType( 'happyprime/latest-custom-posts', {
 								<IconButton
 									icon="plus-alt"
 									label={ __( 'Add more taxonomy settings' ) }
-									onClick={ () => setAttributes( { customTaxonomy: customTaxonomy.concat( TAXONOMY_SETTING ) } ) }
+									onClick={ () => {
+										setAttributes( { customTaxonomy: customTaxonomy.concat( TAXONOMY_SETTING ) } )
+
+										if ( !taxRelation ) {
+											setAttributes( { taxRelation: 'AND' } )
+										}
+									} }
 								>{ __( 'Add more taxonomy settings' ) }</IconButton>
 							) }
 						</div>
