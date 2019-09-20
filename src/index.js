@@ -435,6 +435,7 @@ registerBlockType( 'happyprime/latest-custom-posts', {
 							<SelectControl
 								multiple
 								label="Term(s)"
+								help="Cmd or Ctrl + click to select multiple terms"
 								value={ taxonomy.terms }
 								options={ terms[ index ] }
 								onChange={ ( value ) => {
