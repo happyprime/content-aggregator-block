@@ -363,7 +363,7 @@ registerBlockType( 'happyprime/latest-custom-posts', {
 			} );
 
 			// Resets the `terms` and `operator` properties when the slug is changed.
-			if ( 'slug' === property && value !== customTaxonomy[ index ].slug ) {
+			if ( 'slug' === property && customTaxonomy[ index ] && value !== customTaxonomy[ index ].slug ) {
 				customTaxonomyUpdates = Object.values( {
 					...customTaxonomyUpdates,
 					[ index ]: {
