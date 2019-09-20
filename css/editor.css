@@ -1,14 +1,9 @@
-.happyprime-block-latest-custom-posts_taxonomy-setting:not(:only-child) {
+.happyprime-block-latest-custom-posts_taxonomy-setting-wrapper:not(:only-child) {
 	border-bottom: 1px solid #e2e4e7;
-	padding: 0px 0 12px 32px;
 	position: relative;
 }
 
-.happyprime-block-latest-custom-posts_taxonomy-setting:not(:first-of-type) {
-	padding-top: 16px;
-}
-
-.happyprime-block-latest-custom-posts_taxonomy-setting:not(:only-child) .components-base-control {
+.happyprime-block-latest-custom-posts_taxonomy-setting-wrapper:not(:only-child) .components-base-control {
 	margin-bottom: 0;
 }
 
@@ -20,6 +15,18 @@
 	top: 15px;
 }
 
+.happyprime-block-latest-custom-posts_taxonomy-setting-wrapper:not(:only-child) .happyprime-block-latest-custom-posts_taxonomy-setting {
+	padding: 0px 16px 12px 32px;
+}
+
+.happyprime-block-latest-custom-posts_taxonomy-setting-wrapper:not(:first-of-type) .happyprime-block-latest-custom-posts_taxonomy-setting {
+	padding-top: 16px;
+}
+
 .happyprime-block-latest-custom-posts_taxonomy .components-base-control.components-radio-control {
 	padding: 16px 0 0 32px;
+}
+
+.happyprime-block-latest-custom-posts_taxonomy-setting-wrapper button:hover ~ div {
+	background: #e2e4e7;
 }

@@ -396,52 +396,7 @@ registerBlockType( 'happyprime/latest-custom-posts', {
 
 		const taxonomySetting = ( taxonomy, index ) => {
 			return (
-				<div className="happyprime-block-latest-custom-posts_taxonomy-setting">
-					<SelectControl
-						label="Taxonomy"
-						value={ ( taxonomy.slug ) ? taxonomy.slug : 'none' }
-						options={ taxonomyOptions }
-						onChange={ ( value ) => {
-							setAttributes( { customTaxonomy: updatedCustomTaxonomy( index, 'slug', value ) } );
-							setState( {
-								triggerTermsRefresh: true,
-								taxonomyTerms: Object.assign( terms, { [ index ]: [] } ),
-							} );
-						} }
-					/>
-					{ ( taxonomy.slug !== '' && terms[ index ] && 0 < terms[ index ].length ) && (
-						<SelectControl
-							multiple
-							label="Term(s)"
-							value={ taxonomy.terms }
-							options={ terms[ index ] }
-							onChange={ ( value ) => {
-								setAttributes( { customTaxonomy: updatedCustomTaxonomy( index, 'terms', value ) } );
-								setState( {
-									triggerRefresh: true,
-									latestPosts: [],
-								} );
-							} }
-						/>
-					) }
-					{ ( taxonomy.terms && 1 < taxonomy.terms.length ) && (
-						<RadioControl
-							value={ taxonomy.operator }
-							label="Show posts with:"
-							selected={ taxonomy.operator }
-							options={ [
-								{ label: 'Any selected terms', value: 'IN' },
-								{ label: 'All selected terms', value: 'AND' },
-							] }
-							onChange={ ( value ) => {
-								setAttributes( { customTaxonomy: updatedCustomTaxonomy( index, 'operator', value ) } );
-								setState( {
-									triggerRefresh: true,
-									latestPosts: [],
-								} );
-							} }
-						/>
-					) }
+				<div className="happyprime-block-latest-custom-posts_taxonomy-setting-wrapper">
 					{ 0 < index && (
 						<IconButton
 							className="happyprime-block-latest-custom-posts_remove-taxonomy-setting"
@@ -456,6 +411,53 @@ registerBlockType( 'happyprime/latest-custom-posts', {
 							} }
 						/>
 					) }
+					<div className="happyprime-block-latest-custom-posts_taxonomy-setting">
+						<SelectControl
+							label="Taxonomy"
+							value={ ( taxonomy.slug ) ? taxonomy.slug : 'none' }
+							options={ taxonomyOptions }
+							onChange={ ( value ) => {
+								setAttributes( { customTaxonomy: updatedCustomTaxonomy( index, 'slug', value ) } );
+								setState( {
+									triggerTermsRefresh: true,
+									taxonomyTerms: Object.assign( terms, { [ index ]: [] } ),
+								} );
+							} }
+						/>
+						{ ( taxonomy.slug !== '' && terms[ index ] && 0 < terms[ index ].length ) && (
+							<SelectControl
+								multiple
+								label="Term(s)"
+								value={ taxonomy.terms }
+								options={ terms[ index ] }
+								onChange={ ( value ) => {
+									setAttributes( { customTaxonomy: updatedCustomTaxonomy( index, 'terms', value ) } );
+									setState( {
+										triggerRefresh: true,
+										latestPosts: [],
+									} );
+								} }
+							/>
+						) }
+						{ ( taxonomy.terms && 1 < taxonomy.terms.length ) && (
+							<RadioControl
+								value={ taxonomy.operator }
+								label="Show posts with:"
+								selected={ taxonomy.operator }
+								options={ [
+									{ label: 'Any selected terms', value: 'IN' },
+									{ label: 'All selected terms', value: 'AND' },
+								] }
+								onChange={ ( value ) => {
+									setAttributes( { customTaxonomy: updatedCustomTaxonomy( index, 'operator', value ) } );
+									setState( {
+										triggerRefresh: true,
+										latestPosts: [],
+									} );
+								} }
+							/>
+						) }
+					</div>
 				</div>
 			);
 		}
