@@ -165,7 +165,7 @@ registerBlockType( 'happyprime/latest-custom-posts', {
 				doTermRequest = true;
 			}
 
-			if ( postID && 0 < customTaxonomy.length && doTermRequest ) {
+			if ( postID && customTaxonomy && 0 < customTaxonomy.length && doTermRequest ) {
 				setState( {
 					doingTermsFetch: true,
 					triggerTermsRefresh: false,
@@ -217,19 +217,21 @@ registerBlockType( 'happyprime/latest-custom-posts', {
 
 				const restSlug = customPostType.split( ',' )[1];
 
-				customTaxonomy.forEach( ( taxonomy ) => {
-					if ( !taxonomy.slug || 0 > taxonomy.terms.length ) {
-						return;
-					}
+				if ( customTaxonomy ) {
+					customTaxonomy.forEach( ( taxonomy ) => {
+						if ( !taxonomy.slug || 0 > taxonomy.terms.length ) {
+							return;
+						}
 
-					const termSlug = taxonomy.slug.split( ',' )[1];
+						const termSlug = taxonomy.slug.split( ',' )[1];
 
-					if ( 'AND' === taxonomy.operator ) {
-						// This space intentionally left blank...
-					} else {
-						data[ termSlug ] = taxonomy.terms.join( ',' );
-					}
-				} );
+						if ( 'AND' === taxonomy.operator ) {
+							// This space intentionally left blank...
+						} else {
+							data[ termSlug ] = taxonomy.terms.join( ',' );
+						}
+					} );
+				}
 
 				apiFetch( {
 					path: addQueryArgs( '/wp/v2/' + restSlug, data ),
@@ -421,13 +423,28 @@ registerBlockType( 'happyprime/latest-custom-posts', {
 					<div className="happyprime-block-latest-custom-posts_taxonomy-setting">
 						<SelectControl
 							label="Taxonomy"
-							value={ ( taxonomy.slug ) ? taxonomy.slug : 'none' }
+							value={ ( taxonomy.slug ) ? taxonomy.slug : '' }
 							options={ taxonomyOptions }
 							onChange={ ( value ) => {
-								setAttributes( { customTaxonomy: updatedCustomTaxonomy( index, 'slug', value ) } );
+								if ( '' === value ) {
+									if ( 1 === customTaxonomy.length ) {
+										setAttributes( { customTaxonomy: undefined } );
+									} else {
+										customTaxonomy.splice( index, 1 );
+
+										setAttributes( { customTaxonomy: [ ...customTaxonomy ] } );
+									}
+								} else {
+									setAttributes( { customTaxonomy: updatedCustomTaxonomy( index, 'slug', value ) } );
+									setState( {
+										triggerTermsRefresh: true,
+										taxonomyTerms: Object.assign( terms, { [ index ]: [] } ),
+									} );
+								}
+
 								setState( {
-									triggerTermsRefresh: true,
-									taxonomyTerms: Object.assign( terms, { [ index ]: [] } ),
+									triggerRefresh: true,
+									latestPosts: [],
 								} );
 							} }
 						/>
@@ -549,7 +566,7 @@ registerBlockType( 'happyprime/latest-custom-posts', {
 							} }
 						/>
 						<div className="happyprime-block-latest-custom-posts_taxonomy">
-							{ ( 1 < customTaxonomy.length ) && (
+							{ ( customTaxonomy && 1 < customTaxonomy.length ) && (
 								<p>{ __( 'Taxonomy Settings' ) }</p>
 							) }
 							<div className="happyprime-block-latest-custom-posts_taxonomy-settings">
@@ -559,7 +576,7 @@ registerBlockType( 'happyprime/latest-custom-posts', {
 									taxonomySetting( TAXONOMY_SETTING, 0 )
 								) }
 							</div>
-							{ ( 1 < customTaxonomy.length ) && (
+							{ ( customTaxonomy && 1 < customTaxonomy.length ) && (
 								<RadioControl
 									label={ __( 'Relation' ) }
 									selected={ taxRelation }
