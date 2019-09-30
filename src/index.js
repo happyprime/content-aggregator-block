@@ -172,35 +172,30 @@ registerBlockType( 'happyprime/latest-custom-posts', {
 				} );
 
 				customTaxonomy.forEach( ( taxonomy, index ) => {
+
 					const restSlug = taxonomy.slug.split( ',' )[1];
 
 					if ( undefined === typeof restSlug ) {
-						setState( {
-							doingTermsFetch: false,
-						} );
+						setState( { doingTermsFetch: false } );
 					}
 
 					apiFetch( {
 						path: addQueryArgs( '/wp/v2/' + restSlug, { per_page: 100 } ),
 					} ).then( data => {
-							const termData = data.map( term => {
-								return {
-									label: term.name,
-									value: term.id,
-								}
-							} );
-						setState( {
-							taxonomyTerms: Object.assign( taxonomyTerms, { [ index ]: termData } ),
-							doingTermsFetch: false,
+						const termData = data.map( term => {
+							return {
+								label: term.name,
+								value: term.id,
+							}
 						} );
+
+						setState( { taxonomyTerms: Object.assign( taxonomyTerms, { [ index ]: termData } ) } );
 					} ).catch( error => {
-						setState( {
-							errorMessage: error.message,
-							taxonomyTerms: Object.assign( taxonomyTerms, { [ index ]: [] } ),
-							doingTermsFetch: false,
-						} );
+						setState( { errorMessage: error.message } );
 					} );
 				} );
+
+				setState( { doingTermsFetch: false } );
 			}
 
 			if ( postID && '' !== customPostType && doRequest ) {
@@ -209,7 +204,7 @@ registerBlockType( 'happyprime/latest-custom-posts', {
 					triggerRefresh: false,
 				} );
 
-				let data = {
+				let fetchData = {
 					per_page: itemCount,
 					order: order,
 					orderby: orderBy,
@@ -219,7 +214,7 @@ registerBlockType( 'happyprime/latest-custom-posts', {
 
 				if ( customTaxonomy ) {
 					customTaxonomy.forEach( ( taxonomy ) => {
-						if ( !taxonomy.slug || 0 > taxonomy.terms.length ) {
+						if ( !taxonomy.slug || !taxonomy.terms || 0 > taxonomy.terms.length ) {
 							return;
 						}
 
@@ -228,13 +223,13 @@ registerBlockType( 'happyprime/latest-custom-posts', {
 						if ( 'AND' === taxonomy.operator ) {
 							// This space intentionally left blank...
 						} else {
-							data[ termSlug ] = taxonomy.terms.join( ',' );
+							fetchData[ termSlug ] = taxonomy.terms.join( ',' );
 						}
 					} );
 				}
 
 				apiFetch( {
-					path: addQueryArgs( '/wp/v2/' + restSlug, data ),
+					path: addQueryArgs( '/wp/v2/' + restSlug, fetchData ),
 				} ).then( data => {
 					setState( {
 						latestPosts: data,
@@ -428,7 +423,7 @@ registerBlockType( 'happyprime/latest-custom-posts', {
 							onChange={ ( value ) => {
 								if ( '' === value ) {
 									if ( 1 === customTaxonomy.length ) {
-										setAttributes( { customTaxonomy: undefined } );
+										setAttributes( { customTaxonomy: [] } );
 									} else {
 										customTaxonomy.splice( index, 1 );
 
