@@ -556,8 +556,9 @@ registerBlockType( 'happyprime/latest-custom-posts', {
 							onChange={ ( customPostType ) => {
 								setAttributes( {
 									customPostType,
-									customTaxonomy: [ TAXONOMY_SETTING ],
+									customTaxonomy: [],
 								} );
+
 								setState( {
 									triggerRefresh: true,
 									latestPosts: [],
