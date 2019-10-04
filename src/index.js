@@ -171,6 +171,8 @@ registerBlockType( 'happyprime/latest-custom-posts', {
 					triggerTermsRefresh: false,
 				} );
 
+				let terms = [];
+
 				customTaxonomy.forEach( ( taxonomy, index ) => {
 
 					const restSlug = taxonomy.slug.split( ',' )[1];
@@ -189,13 +191,16 @@ registerBlockType( 'happyprime/latest-custom-posts', {
 							}
 						} );
 
-						setState( { taxonomyTerms: Object.assign( taxonomyTerms, { [ index ]: termData } ) } );
+						Object.assign( terms, { [ index ]: termData } );
 					} ).catch( error => {
 						setState( { errorMessage: error.message } );
 					} );
 				} );
 
-				setState( { doingTermsFetch: false } );
+				setState( {
+					taxonomyTerms: terms,
+					doingTermsFetch: false,
+				} );
 			}
 
 			if ( postID && '' !== customPostType && doRequest ) {
