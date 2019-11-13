@@ -34,3 +34,7 @@
 .happyprime-block-latest-custom-posts_taxonomy-setting-wrapper button:hover ~ div {
 	background: #e2e4e7;
 }
+
+.happyprime-block-latest-custom-posts_error .components-spinner {
+	float: none;
+}

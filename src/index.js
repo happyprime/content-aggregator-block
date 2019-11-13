@@ -32,6 +32,7 @@ const {
 	RangeControl,
 	RadioControl,
 	IconButton,
+	Spinner,
 } = wp.components;
 
 const {
@@ -634,7 +635,13 @@ registerBlockType( 'happyprime/latest-custom-posts', {
 						{ displayPosts && displayPosts.map( post => displayListItem( post ) ) }
 					</ul>
 				) : (
-					<p className="happyprime-block-latest-custom-posts_error">{ errorMessage ? errorMessage : 'Select a post type in this block\'s settings.' }</p>
+					<p className="happyprime-block-latest-custom-posts_error">{
+						( errorMessage )
+							? errorMessage
+							: ( customPostType )
+								? <Spinner />
+								: 'Select a post type in this block\'s settings.'
+					}</p>
 				) }
 			</Fragment>
 		);
