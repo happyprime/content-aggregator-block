@@ -10,6 +10,7 @@ namespace HappyPrime\LatestCustomPosts\Block;
 
 add_action( 'init', __NAMESPACE__ . '\\register_block' );
 add_action( 'enqueue_block_editor_assets', __NAMESPACE__ . '\enqueue_block_editor_assets' );
+add_action( 'rest_api_init', __NAMESPACE__ . '\\register_route' );
 
 /**
  * Provide a block version number for scripts.
@@ -21,7 +22,7 @@ function block_version() {
 }
 
 /**
- * Registers the `core/latest-posts` block on server.
+ * Registers the `happyprime/latest-custom-posts` block on server.
  */
 function register_block() {
 	register_block_type(
@@ -71,28 +72,9 @@ function register_block() {
 }
 
 /**
- * Renders block in PHP.
  *
- * @param array $attributes The block attributes.
- *
- * @return string HTML
  */
-function render_block( $attributes ) {
-	$defaults   = array(
-		'customPostType'  => 'post,posts',
-		'customTaxonomy'  => array(),
-		'taxRelation'     => '',
-		'termID'          => 0,
-		'itemCount'       => 3,
-		'order'           => 'desc',
-		'orderBy'         => 'date',
-		'displayPostDate' => false,
-		'postLayout'      => 'list',
-		'columns'         => 2,
-		'className'       => '',
-	);
-	$attributes = wp_parse_args( $attributes, $defaults );
-
+function build_query_args( $attributes ) {
 	$post_type = explode( ',', $attributes['customPostType'] );
 
 	$args = array(
@@ -128,7 +110,32 @@ function render_block( $attributes ) {
 		$args['tax_query'] = $tax_query; // phpcs:ignore
 	}
 
-	$posts = get_posts( $args );
+	return $args;
+}
+
+/**
+ * Renders block in PHP.
+ *
+ * @param array $attributes The block attributes.
+ *
+ * @return string HTML
+ */
+function render_block( $attributes ) {
+	$defaults   = array(
+		'customPostType'  => 'post,posts',
+		'customTaxonomy'  => array(),
+		'taxRelation'     => '',
+		'itemCount'       => 3,
+		'order'           => 'desc',
+		'orderBy'         => 'date',
+		'displayPostDate' => false,
+		'postLayout'      => 'list',
+		'columns'         => 2,
+		'className'       => '',
+	);
+	$attributes = wp_parse_args( $attributes, $defaults );
+	$args       = build_query_args( $attributes );
+	$posts      = get_posts( $args );
 
 	// Render nothing if no posts are available.
 	if ( empty( $posts ) ) {
@@ -138,6 +145,7 @@ function render_block( $attributes ) {
 	ob_start();
 
 	$container_class = 'wp-block-latest-posts wp-block-latest-posts__list happyprime-latest-custom-posts';
+
 	if ( isset( $attributes['align'] ) ) {
 		$container_class .= ' align' . $attributes['align'];
 	}
@@ -209,4 +217,58 @@ function enqueue_block_editor_assets() {
 		),
 		block_version()
 	);
+}
+
+/**
+ * Register a REST API route for this block.
+ */
+function register_route() {
+	register_rest_route(
+		'lcp/v1',
+		'posts',
+		array(
+			'methods'  => 'GET',
+			'callback' => __NAMESPACE__ . '\rest_response',
+		)
+	);
+}
+
+/**
+ * Return posts based on the provided parameters.
+ *
+ * @param \WP_Request $request The incoming REST API request object.
+ *
+ * @return array Posts found using the provided parameters.
+ */
+function rest_response( $request ) {
+	$attributes = array(
+		'customPostType'  => $request->get_param( 'post_type' ) ? $request->get_param( 'post_type' ) : 'post,posts',
+		'customTaxonomy'  => $request->get_param( 'taxonomies' ) ? $request->get_param( 'taxonomies' ) : array(),
+		'taxRelation'     => $request->get_param( 'tax_relation' ) ? $request->get_param( 'tax_relation' ) : '',
+		'itemCount'       => $request->get_param( 'per_page' ) ? $request->get_param( 'per_page' ) : 3,
+		'order'           => $request->get_param( 'order' ) ? $request->get_param( 'order' ) : 'desc',
+		'orderBy'         => $request->get_param( 'order_by' ) ? $request->get_param( 'order_by' ) : 'date',
+	);
+	$args       = build_query_args( $attributes );
+	$query      = new \WP_Query( $args );
+
+	// Assume no posts match the criteria by default.
+	$posts = array();
+
+	if ( $query->have_posts() ) {
+		while ( $query->have_posts() ) {
+			$query->the_post();
+
+			$post = array(
+				'title'    => get_the_title(),
+				'date_gmt' => get_the_date( '' ),
+				'link'     => get_the_permalink(),
+			);
+
+			$posts[] = $post;
+		}
+		wp_reset_postdata();
+	}
+
+	return $posts;
 }
