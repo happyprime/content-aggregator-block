@@ -226,8 +226,6 @@ registerBlockType( 'happyprime/latest-custom-posts', {
 					}
 				}
 
-				console.log( addQueryArgs( '/lcp/v1/posts/', fetchData ) );
-
 				apiFetch( {
 					path: addQueryArgs( '/lcp/v1/posts/', fetchData ),
 				} ).then( data => {
