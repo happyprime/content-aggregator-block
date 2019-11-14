@@ -33,10 +33,6 @@ function register_block() {
 					'type'    => 'string',
 					'default' => 'post,posts',
 				),
-				'customTaxonomy'  => array(
-					'type'    => 'array',
-					'default' => array(),
-				),
 				'taxRelation'     => array(
 					'type'    => 'string',
 					'default' => '',
@@ -65,6 +61,14 @@ function register_block() {
 					'type'    => 'integer',
 					'default' => 2,
 				),
+				// Type and default value removed as this attributed is being
+				// repurposed from a deprecated version with a different type.
+				'customTaxonomy'  => array(),
+				// Deprecated.
+				'termID'          => array(
+					'type'    => 'integer',
+					'default' => 0,
+				),
 			),
 			'render_callback' => __NAMESPACE__ . '\\render_block',
 		)
@@ -72,17 +76,32 @@ function register_block() {
 }
 
 /**
+ * Builds out query arguments for the given attributes.
  *
+ * @param array $attributes The block attributes.
+ *
+ * @return array The built query arguments.
  */
 function build_query_args( $attributes ) {
 	$post_type = explode( ',', $attributes['customPostType'] );
 
 	$args = array(
-		'post_type'       => $post_type[0],
-		'posts_per_page'  => absint( $attributes['itemCount'] ),
-		'order'           => $attributes['order'],
-		'orderby'         => $attributes['orderBy'],
+		'post_type'      => $post_type[0],
+		'posts_per_page' => absint( $attributes['itemCount'] ),
+		'order'          => $attributes['order'],
+		'orderby'        => $attributes['orderBy'],
 	);
+
+	// If this is a previous version of the block, overwrite
+	// the `customTaxonomy` attribute using the new format.
+	if ( $attributes['termID'] ) {
+		$attributes['customTaxonomy'] = array(
+			array(
+				'slug'  => $attributes['customTaxonomy'],
+				'terms' => array( $attributes['termID'] ),
+			),
+		);
+	}
 
 	if ( ! empty( $attributes['customTaxonomy'] ) ) {
 		$tax_query = array();
@@ -242,12 +261,12 @@ function register_route() {
  */
 function rest_response( $request ) {
 	$attributes = array(
-		'customPostType'  => $request->get_param( 'post_type' ) ? $request->get_param( 'post_type' ) : 'post,posts',
-		'customTaxonomy'  => $request->get_param( 'taxonomies' ) ? $request->get_param( 'taxonomies' ) : array(),
-		'taxRelation'     => $request->get_param( 'tax_relation' ) ? $request->get_param( 'tax_relation' ) : '',
-		'itemCount'       => $request->get_param( 'per_page' ) ? $request->get_param( 'per_page' ) : 3,
-		'order'           => $request->get_param( 'order' ) ? $request->get_param( 'order' ) : 'desc',
-		'orderBy'         => $request->get_param( 'order_by' ) ? $request->get_param( 'order_by' ) : 'date',
+		'customPostType' => $request->get_param( 'post_type' ) ? $request->get_param( 'post_type' ) : 'post,posts',
+		'customTaxonomy' => $request->get_param( 'taxonomies' ) ? $request->get_param( 'taxonomies' ) : array(),
+		'taxRelation'    => $request->get_param( 'tax_relation' ) ? $request->get_param( 'tax_relation' ) : '',
+		'itemCount'      => $request->get_param( 'per_page' ) ? $request->get_param( 'per_page' ) : 3,
+		'order'          => $request->get_param( 'order' ) ? $request->get_param( 'order' ) : 'desc',
+		'orderBy'        => $request->get_param( 'order_by' ) ? $request->get_param( 'order_by' ) : 'date',
 	);
 	$args       = build_query_args( $attributes );
 	$query      = new \WP_Query( $args );

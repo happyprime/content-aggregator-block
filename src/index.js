@@ -38,7 +38,7 @@ const {
 const {
 	InspectorControls,
 	BlockControls,
-} = wp.editor;
+} = ( 'undefined' === typeof wp.blockEditor ) ? wp.editor : wp.blockEditor;
 
 const {
 	addQueryArgs,
@@ -83,45 +83,6 @@ registerBlockType( 'happyprime/latest-custom-posts', {
 		html: false,
 	},
 
-	attributes: {
-		customPostType: {
-			type: 'string',
-			default: 'post,posts',
-		},
-		customTaxonomy: {
-			type: 'array',
-			default: [],
-		},
-		taxRelation: {
-			type: 'string',
-			default: 'AND',
-		},
-		itemCount: {
-			type: 'integer',
-			default: 3,
-		},
-		order: {
-			type: 'string',
-			default: 'desc',
-		},
-		orderBy: {
-			type: 'string',
-			default: 'date',
-		},
-		displayPostDate: {
-			type: 'boolean',
-			default: false
-		},
-		postLayout: {
-			type: 'string',
-			default: 'list',
-		},
-		columns: {
-			type: 'integer',
-			default: 2,
-		},
-	},
-
 	edit: compose( [
 		withState( {
 			latestPosts: [],
@@ -147,12 +108,18 @@ registerBlockType( 'happyprime/latest-custom-posts', {
 
 			const {
 				customPostType,
-				customTaxonomy,
 				itemCount,
 				taxRelation,
 				order,
 				orderBy,
 			} = props.attributes;
+
+			const customTaxonomy = ( 'string' !== typeof props.attributes.customTaxonomy )
+				? props.attributes.customTaxonomy
+				: [ {
+					slug: props.attributes.customTaxonomy,
+					terms: [ `${props.attributes.termID}` ],
+				} ];
 
 			let postID = select( 'core/editor' ).getCurrentPostId();
 
@@ -258,7 +225,6 @@ registerBlockType( 'happyprime/latest-custom-posts', {
 		const {
 			itemCount,
 			customPostType,
-			customTaxonomy,
 			taxRelation,
 			order,
 			orderBy,
@@ -267,10 +233,17 @@ registerBlockType( 'happyprime/latest-custom-posts', {
 			columns,
 		} = attributes;
 
+		const customTaxonomy = ( 'string' !== typeof attributes.customTaxonomy )
+			? attributes.customTaxonomy
+			: [ {
+				slug: attributes.customTaxonomy,
+				terms: [ `${attributes.termID}` ],
+			} ];
+
 		let displayPosts;
 
 		// Ensure the number of posts is limited to the expected number of posts.
-		if ( posts.length > itemCount ) {
+		if ( posts && posts.length > itemCount ) {
 			displayPosts = posts.slice( 0, itemCount );
 		} else {
 			displayPosts = posts;
