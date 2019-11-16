@@ -94,7 +94,7 @@ function build_query_args( $attributes ) {
 
 	// If this is a previous version of the block, overwrite
 	// the `customTaxonomy` attribute using the new format.
-	if ( $attributes['termID'] ) {
+	if ( $attributes['termID'] && ! is_array( $attributes['customTaxonomy'] ) ) {
 		$attributes['customTaxonomy'] = array(
 			array(
 				'slug'  => $attributes['customTaxonomy'],

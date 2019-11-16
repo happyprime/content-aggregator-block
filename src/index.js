@@ -233,7 +233,7 @@ registerBlockType( 'happyprime/latest-custom-posts', {
 			columns,
 		} = attributes;
 
-		const customTaxonomy = ( 'string' !== typeof attributes.customTaxonomy )
+		const customTaxonomy = ( 'string' !== typeof attributes.customTaxonomy && !attributes.termID )
 			? attributes.customTaxonomy
 			: [ {
 				slug: attributes.customTaxonomy,
