@@ -33,6 +33,10 @@ function register_block() {
 					'type'    => 'string',
 					'default' => 'post,posts',
 				),
+				'taxonomies'      => array(
+					'type'    => 'array',
+					'default' => array(),
+				),
 				'taxRelation'     => array(
 					'type'    => 'string',
 					'default' => '',
@@ -61,10 +65,8 @@ function register_block() {
 					'type'    => 'integer',
 					'default' => 2,
 				),
-				// Type and default value removed as this attributed is being
-				// repurposed from a deprecated version with a different type.
-				'customTaxonomy'  => array(),
 				// Deprecated.
+				'customTaxonomy'  => array(),
 				'termID'          => array(
 					'type'    => 'integer',
 					'default' => 0,
@@ -103,14 +105,25 @@ function build_query_args( $attributes ) {
 		);
 	}
 
-	if ( ! empty( $attributes['customTaxonomy'] ) ) {
+	// Use the new `taxonomies` attribute if available.
+	$taxonomies = ( ! empty( $attributes['taxonomies'] ) )
+		? $attributes['taxonomies']
+		: $attributes['customTaxonomy'];
+
+	if ( ! empty( $taxonomies ) ) {
 		$tax_query = array();
 
 		if ( '' !== $attributes['taxRelation'] ) {
 			$tax_query['relation'] = $attributes['taxRelation'];
 		}
 
-		foreach ( $attributes['customTaxonomy'] as $taxonomy ) {
+		foreach ( $taxonomies as $taxonomy ) {
+
+			// Skip this taxonomy if it has no term options.
+			if ( empty( $taxonomy['terms'] ) ) {
+				continue;
+			}
+
 			$slug = explode( ',', $taxonomy['slug'] );
 
 			$settings = array(
@@ -142,7 +155,7 @@ function build_query_args( $attributes ) {
 function render_block( $attributes ) {
 	$defaults   = array(
 		'customPostType'  => 'post,posts',
-		'customTaxonomy'  => array(),
+		'taxonomies'      => array(),
 		'taxRelation'     => '',
 		'itemCount'       => 3,
 		'order'           => 'desc',
@@ -151,6 +164,7 @@ function render_block( $attributes ) {
 		'postLayout'      => 'list',
 		'columns'         => 2,
 		'className'       => '',
+		'customTaxonomy'  => array(),
 	);
 	$attributes = wp_parse_args( $attributes, $defaults );
 	$args       = build_query_args( $attributes );
@@ -262,7 +276,7 @@ function register_route() {
 function rest_response( $request ) {
 	$attributes = array(
 		'customPostType' => $request->get_param( 'post_type' ) ? $request->get_param( 'post_type' ) : 'post,posts',
-		'customTaxonomy' => $request->get_param( 'taxonomies' ) ? $request->get_param( 'taxonomies' ) : array(),
+		'taxonomies'     => $request->get_param( 'taxonomies' ) ? $request->get_param( 'taxonomies' ) : array(),
 		'taxRelation'    => $request->get_param( 'tax_relation' ) ? $request->get_param( 'tax_relation' ) : '',
 		'itemCount'      => $request->get_param( 'per_page' ) ? $request->get_param( 'per_page' ) : 3,
 		'order'          => $request->get_param( 'order' ) ? $request->get_param( 'order' ) : 'desc',

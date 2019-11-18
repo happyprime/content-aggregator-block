@@ -96,6 +96,7 @@ registerBlockType( 'happyprime/latest-custom-posts', {
 		} ),
 		withSelect( ( select, props ) => {
 			const {
+				attributes,
 				setState,
 				latestPosts,
 				doingLatestPostsFetch,
@@ -112,14 +113,18 @@ registerBlockType( 'happyprime/latest-custom-posts', {
 				taxRelation,
 				order,
 				orderBy,
-			} = props.attributes;
+			} = attributes;
 
-			const customTaxonomy = ( 'string' !== typeof props.attributes.customTaxonomy )
-				? props.attributes.customTaxonomy
-				: [ {
-					slug: props.attributes.customTaxonomy,
-					terms: [ `${props.attributes.termID}` ],
-				} ];
+			const taxonomies = ( 0 < attributes.taxonomies.length )
+				? attributes.taxonomies
+				: ( !attributes.customTaxonomy )
+					? []
+					: ( 'string' !== typeof attributes.customTaxonomy )
+						? attributes.customTaxonomy
+						: [ {
+							slug: attributes.customTaxonomy,
+							terms: [ `${attributes.termID}` ],
+						} ];
 
 			let postID = select( 'core/editor' ).getCurrentPostId();
 
@@ -134,7 +139,7 @@ registerBlockType( 'happyprime/latest-custom-posts', {
 				doTermRequest = true;
 			}
 
-			if ( postID && customTaxonomy && 0 < customTaxonomy.length && doTermRequest ) {
+			if ( postID && taxonomies && 0 < taxonomies.length && doTermRequest ) {
 				setState( {
 					doingTermsFetch: true,
 					triggerTermsRefresh: false,
@@ -142,7 +147,7 @@ registerBlockType( 'happyprime/latest-custom-posts', {
 
 				let terms = [];
 
-				customTaxonomy.forEach( ( taxonomy, index ) => {
+				taxonomies.forEach( ( taxonomy, index ) => {
 
 					const restSlug = taxonomy.slug.split( ',' )[1];
 
@@ -185,8 +190,8 @@ registerBlockType( 'happyprime/latest-custom-posts', {
 					orderby: orderBy,
 				};
 
-				if ( customTaxonomy ) {
-					fetchData['taxonomies'] = customTaxonomy;
+				if ( taxonomies ) {
+					fetchData['taxonomies'] = taxonomies;
 
 					if ( taxRelation ) {
 						fetchData['tax_relation'] = taxRelation;
@@ -233,12 +238,16 @@ registerBlockType( 'happyprime/latest-custom-posts', {
 			columns,
 		} = attributes;
 
-		const customTaxonomy = ( 'string' !== typeof attributes.customTaxonomy && !attributes.termID )
-			? attributes.customTaxonomy
-			: [ {
-				slug: attributes.customTaxonomy,
-				terms: [ `${attributes.termID}` ],
-			} ];
+		const taxonomies = ( 0 < attributes.taxonomies.length )
+			? attributes.taxonomies
+			: ( !attributes.customTaxonomy )
+				? []
+				: ( 'string' !== typeof attributes.customTaxonomy )
+					? attributes.customTaxonomy
+					: [ {
+						slug: attributes.customTaxonomy,
+						terms: [ `${attributes.termID}` ],
+					} ];
 
 		let displayPosts;
 
@@ -321,21 +330,21 @@ registerBlockType( 'happyprime/latest-custom-posts', {
 			);
 		};
 
-		const updatedCustomTaxonomy = ( index, property, value ) => {
-			let customTaxonomyUpdates = Object.values( {
-				...customTaxonomy,
+		const updatedTaxonomies = ( index, property, value ) => {
+			let taxonomiesUpdate = Object.values( {
+				...taxonomies,
 				[ index ]: {
-					...customTaxonomy[ index ],
+					...taxonomies[ index ],
 					[ property ]: value,
 				}
 			} );
 
 			// Resets the `terms` and `operator` properties when the slug is changed.
-			if ( 'slug' === property && customTaxonomy[ index ] && value !== customTaxonomy[ index ].slug ) {
-				customTaxonomyUpdates = Object.values( {
-					...customTaxonomyUpdates,
+			if ( 'slug' === property && taxonomies[ index ] && value !== taxonomies[ index ].slug ) {
+				taxonomiesUpdate = Object.values( {
+					...taxonomiesUpdate,
 					[ index ]: {
-						...customTaxonomyUpdates[ index ],
+						...taxonomiesUpdate[ index ],
 						terms: [],
 						operator: undefined,
 					}
@@ -344,22 +353,30 @@ registerBlockType( 'happyprime/latest-custom-posts', {
 
 			// Handles changes to the `operator` property when terms are changed.
 			if ( 'terms' === property ) {
-				const operatorValue = ( !customTaxonomy[ index ].operator && 1 < value.length )
+				const operatorValue = ( !taxonomies[ index ].operator && 1 < value.length )
 					? 'IN'
 					: ( 1 < value.length )
-						? customTaxonomy[ index ].operator
+						? taxonomies[ index ].operator
 						: undefined;
 
-				customTaxonomyUpdates = Object.values( {
-					...customTaxonomyUpdates,
+				taxonomiesUpdate = Object.values( {
+					...taxonomiesUpdate,
 					[ index ]: {
-						...customTaxonomyUpdates[ index ],
+						...taxonomiesUpdate[ index ],
 						operator: operatorValue,
 					}
 				} );
 			}
 
-			return customTaxonomyUpdates;
+			// Remove deprecated taxonomy attributes.
+			if ( attributes.customTaxonomy || attributes.termID ) {
+				setAttributes( {
+					customTaxonomy: undefined,
+					termID: undefined,
+				} );
+			}
+
+			return taxonomiesUpdate;
 		}
 
 		const taxonomySetting = ( taxonomy, index ) => {
@@ -371,11 +388,11 @@ registerBlockType( 'happyprime/latest-custom-posts', {
 							icon="dismiss"
 							label={ __( 'Remove taxonomy setting' ) }
 							onClick={ () => {
-								customTaxonomy.splice( index, 1 );
+								taxonomies.splice( index, 1 );
 
-								setAttributes( { customTaxonomy: [ ...customTaxonomy ] } );
+								setAttributes( { taxonomies: [ ...taxonomies ] } );
 
-								if ( 1 === customTaxonomy.length ) {
+								if ( 1 === taxonomies.length ) {
 									setAttributes( { taxRelation: undefined } );
 								}
 
@@ -393,15 +410,15 @@ registerBlockType( 'happyprime/latest-custom-posts', {
 							options={ taxonomyOptions }
 							onChange={ ( value ) => {
 								if ( '' === value ) {
-									if ( 1 === customTaxonomy.length ) {
-										setAttributes( { customTaxonomy: [] } );
+									if ( 1 === taxonomies.length ) {
+										setAttributes( { taxonomies: [] } );
 									} else {
-										customTaxonomy.splice( index, 1 );
+										taxonomies.splice( index, 1 );
 
-										setAttributes( { customTaxonomy: [ ...customTaxonomy ] } );
+										setAttributes( { taxonomies: [ ...taxonomies ] } );
 									}
 								} else {
-									setAttributes( { customTaxonomy: updatedCustomTaxonomy( index, 'slug', value ) } );
+									setAttributes( { taxonomies: updatedTaxonomies( index, 'slug', value ) } );
 									setState( {
 										triggerTermsRefresh: true,
 										taxonomyTerms: Object.assign( terms, { [ index ]: [] } ),
@@ -422,7 +439,7 @@ registerBlockType( 'happyprime/latest-custom-posts', {
 								value={ taxonomy.terms }
 								options={ terms[ index ] }
 								onChange={ ( value ) => {
-									setAttributes( { customTaxonomy: updatedCustomTaxonomy( index, 'terms', value ) } );
+									setAttributes( { taxonomies: updatedTaxonomies( index, 'terms', value ) } );
 									setState( {
 										triggerRefresh: true,
 										latestPosts: [],
@@ -440,7 +457,7 @@ registerBlockType( 'happyprime/latest-custom-posts', {
 									{ label: 'All selected terms', value: 'AND' },
 								] }
 								onChange={ ( value ) => {
-									setAttributes( { customTaxonomy: updatedCustomTaxonomy( index, 'operator', value ) } );
+									setAttributes( { taxonomies: updatedTaxonomies( index, 'operator', value ) } );
 									setState( {
 										triggerRefresh: true,
 										latestPosts: [],
@@ -528,7 +545,7 @@ registerBlockType( 'happyprime/latest-custom-posts', {
 							onChange={ ( customPostType ) => {
 								setAttributes( {
 									customPostType,
-									customTaxonomy: [],
+									taxonomies: [],
 								} );
 								setState( {
 									triggerRefresh: true,
@@ -538,17 +555,17 @@ registerBlockType( 'happyprime/latest-custom-posts', {
 							} }
 						/>
 						<div className="happyprime-block-latest-custom-posts_taxonomy">
-							{ ( customTaxonomy && 1 < customTaxonomy.length ) && (
+							{ ( taxonomies && 1 < taxonomies.length ) && (
 								<p>{ __( 'Taxonomy Settings' ) }</p>
 							) }
 							<div className="happyprime-block-latest-custom-posts_taxonomy-settings">
-								{ ( customTaxonomy && 0 < customTaxonomy.length ) ? (
-									customTaxonomy.map( ( taxonomy, index ) => taxonomySetting( taxonomy, index ) )
+								{ ( taxonomies && 0 < taxonomies.length ) ? (
+									taxonomies.map( ( taxonomy, index ) => taxonomySetting( taxonomy, index ) )
 								) : (
 									taxonomySetting( TAXONOMY_SETTING, 0 )
 								) }
 							</div>
-							{ ( customTaxonomy && 1 < customTaxonomy.length ) && (
+							{ ( taxonomies && 1 < taxonomies.length ) && (
 								<RadioControl
 									label={ __( 'Relation' ) }
 									selected={ taxRelation }
@@ -565,12 +582,12 @@ registerBlockType( 'happyprime/latest-custom-posts', {
 									} }
 								/>
 							) }
-							{ ( customTaxonomy && 0 < customTaxonomy.length && customTaxonomy[0].terms && 0 < customTaxonomy[0].terms.length ) && (
+							{ ( taxonomies && 0 < taxonomies.length && taxonomies[0].terms && 0 < taxonomies[0].terms.length ) && (
 								<IconButton
 									icon="plus-alt"
 									label={ __( 'Add more taxonomy settings' ) }
 									onClick={ () => {
-										setAttributes( { customTaxonomy: customTaxonomy.concat( TAXONOMY_SETTING ) } );
+										setAttributes( { taxonomies: taxonomies.concat( TAXONOMY_SETTING ) } );
 
 										if ( !taxRelation ) {
 											setAttributes( { taxRelation: 'AND' } )
