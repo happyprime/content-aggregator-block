@@ -474,7 +474,7 @@ registerBlockType( 'happyprime/latest-custom-posts', {
 			<Fragment>
 				<InspectorControls>
 					<PanelBody
-						title={ __( 'Settings' ) }
+						title={ __( 'Sorting and Filtering' ) }
 						className="panelbody-custom-latest-posts"
 					>
 						<SelectControl
@@ -606,6 +606,16 @@ registerBlockType( 'happyprime/latest-custom-posts', {
 								required
 							/>
 						}
+					</PanelBody>
+					<PanelBody
+						title={ __( 'Post Content Settings' ) }
+						className="panelbody-custom-latest-posts"
+					>
+						<ToggleControl
+							label={ __( 'Display post date' ) }
+							checked={ displayPostDate }
+							onChange={ ( value ) => setAttributes( { displayPostDate: value } ) }
+						/>
 					</PanelBody>
 				</InspectorControls>
 				<BlockControls>
