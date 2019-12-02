@@ -29,45 +29,57 @@ function register_block() {
 		'happyprime/latest-custom-posts',
 		array(
 			'attributes'      => array(
-				'customPostType'  => array(
+				'customPostType'     => array(
 					'type'    => 'string',
 					'default' => 'post,posts',
 				),
-				'taxonomies'      => array(
+				'taxonomies'         => array(
 					'type'    => 'array',
 					'default' => array(),
 				),
-				'taxRelation'     => array(
+				'taxRelation'        => array(
 					'type'    => 'string',
 					'default' => '',
 				),
-				'itemCount'       => array(
+				'itemCount'          => array(
 					'type'    => 'integer',
 					'default' => 3,
 				),
-				'order'           => array(
+				'order'              => array(
 					'type'    => 'string',
 					'default' => 'desc',
 				),
-				'orderBy'         => array(
+				'orderBy'            => array(
 					'type'    => 'string',
 					'default' => 'date',
 				),
-				'displayPostDate' => array(
+				'displayPostDate'    => array(
 					'type'    => 'boolean',
 					'default' => false,
 				),
-				'postLayout'      => array(
+				'postLayout'         => array(
 					'type'    => 'string',
 					'default' => 'list',
 				),
-				'columns'         => array(
+				'columns'            => array(
 					'type'    => 'integer',
 					'default' => 2,
 				),
+				'displayPostContent' => array(
+					'type'    => 'boolean',
+					'default' => false,
+				),
+				'postContent'        => array(
+					'type'    => 'string',
+					'default' => 'excerpt',
+				),
+				'excerptLength'      => array(
+					'type'    => 'number',
+					'default' => 55,
+				),
 				// Deprecated.
-				'customTaxonomy'  => array(),
-				'termID'          => array(
+				'customTaxonomy'     => array(),
+				'termID'             => array(
 					'type'    => 'integer',
 					'default' => 0,
 				),
@@ -154,17 +166,20 @@ function build_query_args( $attributes ) {
  */
 function render_block( $attributes ) {
 	$defaults   = array(
-		'customPostType'  => 'post,posts',
-		'taxonomies'      => array(),
-		'taxRelation'     => '',
-		'itemCount'       => 3,
-		'order'           => 'desc',
-		'orderBy'         => 'date',
-		'displayPostDate' => false,
-		'postLayout'      => 'list',
-		'columns'         => 2,
-		'className'       => '',
-		'customTaxonomy'  => array(),
+		'customPostType'     => 'post,posts',
+		'taxonomies'         => array(),
+		'taxRelation'        => '',
+		'itemCount'          => 3,
+		'order'              => 'desc',
+		'orderBy'            => 'date',
+		'displayPostDate'    => false,
+		'postLayout'         => 'list',
+		'columns'            => 2,
+		'className'          => '',
+		'customTaxonomy'     => array(),
+		'displayPostContent' => false,
+		'postContent'        => 'excerpt',
+		'excerptLength'      => 55,
 	);
 	$attributes = wp_parse_args( $attributes, $defaults );
 	$args       = build_query_args( $attributes );
@@ -212,6 +227,24 @@ function render_block( $attributes ) {
 					?>
 					<time datetime="<?php echo esc_attr( get_the_date( 'c', $post ) ); ?>" class="wp-block-latest-posts__post-date"><?php echo esc_html( get_the_date( '', $post ) ); ?></time>
 					<?php
+				}
+				if ( isset( $attributes['displayPostContent'] ) && $attributes['displayPostContent'] && isset( $attributes['postContent'] ) ) {
+					if ( 'excerpt' === $attributes['postContent'] ) {
+						$post_excerpt    = ( $post->post_excerpt ) ? $post->post_excerpt : $post->post_content;
+						$trimmed_excerpt = esc_html( wp_trim_words( $post_excerpt, $attributes['excerptLength'], '&hellip;' ) );
+						?>
+						<div class="wp-block-latest-posts__post-excerpt">
+							<?php echo wp_kses_post( $trimmed_excerpt ); ?>
+						</div>
+						<?php
+					}
+					if ( 'full_post' === $attributes['postContent'] ) {
+						?>
+						<div class="wp-block-latest-posts__post-full-content">
+							<?php echo wp_kses_post( html_entity_decode( $post->post_content, ENT_QUOTES, get_option( 'blog_charset' ) ) ); ?>
+						</div>
+						<?php
+					}
 				}
 				?>
 			</li>
@@ -296,6 +329,8 @@ function rest_response( $request ) {
 				'title'    => get_the_title(),
 				'date_gmt' => get_the_date( '' ),
 				'link'     => get_the_permalink(),
+				'content'  => get_the_content(),
+				'excerpt'  => wp_strip_all_tags( get_the_excerpt(), true ),
 			);
 
 			$posts[] = $post;

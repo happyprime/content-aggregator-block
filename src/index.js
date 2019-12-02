@@ -236,6 +236,9 @@ registerBlockType( 'happyprime/latest-custom-posts', {
 			displayPostDate,
 			postLayout,
 			columns,
+			displayPostContent,
+			postContent,
+			excerptLength,
 		} = attributes;
 
 		const taxonomies = ( 0 < attributes.taxonomies.length )
@@ -310,6 +313,12 @@ registerBlockType( 'happyprime/latest-custom-posts', {
 		const displayListItem = ( post ) => {
 			const titleTrimmed = post.title.trim();
 
+			const excerptElement = document.createElement( 'div' );
+
+			excerptElement.innerHTML = post.excerpt;
+
+			const excerpt = excerptElement.textContent || excerptElement.innerText || '';
+
 			return (
 				<li>
 					<a href={ post.link } target="_blank" rel="noreferrer noopener">
@@ -325,6 +334,26 @@ registerBlockType( 'happyprime/latest-custom-posts', {
 						<time dateTime={ format( 'c', post.date_gmt ) } className="wp-block-latest-posts__post-date">
 							{ dateI18n( __experimentalGetSettings().formats.date, post.date_gmt ) }
 						</time>
+					}
+					{ displayPostContent && postContent === 'excerpt' &&
+						<div className="wp-block-latest-posts__post-excerpt">
+							<RawHTML
+								key="html"
+							>
+								{ excerptLength < excerpt.trim().split( ' ' ).length ?
+									excerpt.trim().split( ' ', excerptLength ).join( ' ' ) + '…' :
+									excerpt.trim().split( ' ', excerptLength ).join( ' ' ) }
+							</RawHTML>
+						</div>
+					}
+					{ displayPostContent && postContent === 'full_post' &&
+						<div className="wp-block-latest-posts__post-full-content">
+							<RawHTML
+								key="html"
+							>
+								{ post.content.trim() }
+							</RawHTML>
+						</div>
 					}
 				</li>
 			);
@@ -613,6 +642,31 @@ registerBlockType( 'happyprime/latest-custom-posts', {
 							checked={ displayPostDate }
 							onChange={ ( value ) => setAttributes( { displayPostDate: value } ) }
 						/>
+						<ToggleControl
+							label={ __( 'Display post content' ) }
+							checked={ displayPostContent }
+							onChange={ ( value ) => setAttributes( { displayPostContent: value } ) }
+						/>
+						{ displayPostContent &&
+							<RadioControl
+								label={ __( 'Show:' ) }
+								selected={ postContent }
+								options={ [
+									{ label: __( 'Excerpt' ), value: 'excerpt' },
+									{ label: __( 'Full Post' ), value: 'full_post' },
+								] }
+								onChange={ ( value ) => setAttributes( { postContent: value } ) }
+							/>
+						}
+						{ displayPostContent && postContent === 'excerpt' &&
+							<RangeControl
+								label={ __( 'Max number of words in excerpt' ) }
+								value={ excerptLength }
+								onChange={ ( value ) => setAttributes( { excerptLength: value } ) }
+								min={ 10 }
+								max={ 100 }
+							/>
+						}
 					</PanelBody>
 				</InspectorControls>
 				<BlockControls>
