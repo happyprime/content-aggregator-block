@@ -262,7 +262,7 @@ registerBlockType( 'happyprime/latest-custom-posts', {
 		let currentTaxonomies = select( 'core' ).getTaxonomies();
 		let postTypeOptions   = [];
 		let taxonomySlugs     = [];
-		let taxonomyOptions   = [ { label: 'None', value: '' } ];
+		let taxonomyOptions   = [ { label: __( 'None' ), value: '' } ];
 
 		if ( null === currentTypes ) {
 			currentTypes = [];
@@ -405,7 +405,7 @@ registerBlockType( 'happyprime/latest-custom-posts', {
 					) }
 					<div className="happyprime-block-latest-custom-posts_taxonomy-setting">
 						<SelectControl
-							label="Taxonomy"
+							label={ __( 'Taxonomy' ) }
 							value={ ( taxonomy.slug ) ? taxonomy.slug : '' }
 							options={ taxonomyOptions }
 							onChange={ ( value ) => {
@@ -434,8 +434,8 @@ registerBlockType( 'happyprime/latest-custom-posts', {
 						{ ( taxonomy.slug !== '' && terms[ index ] && 0 < terms[ index ].length ) && (
 							<SelectControl
 								multiple
-								label="Term(s)"
-								help="Ctrl/Cmd + click to select multiple terms"
+								label={ __( 'Term(s)' ) }
+								help={ __( 'Ctrl/Cmd + click to select multiple terms' ) }
 								value={ taxonomy.terms }
 								options={ terms[ index ] }
 								onChange={ ( value ) => {
@@ -450,11 +450,11 @@ registerBlockType( 'happyprime/latest-custom-posts', {
 						{ ( taxonomy.terms && 1 < taxonomy.terms.length ) && (
 							<RadioControl
 								value={ taxonomy.operator }
-								label="Show posts with:"
+								label={ __( 'Show posts with:' ) }
 								selected={ taxonomy.operator }
 								options={ [
-									{ label: 'Any selected terms', value: 'IN' },
-									{ label: 'All selected terms', value: 'AND' },
+									{ label: __( 'Any selected terms' ), value: 'IN' },
+									{ label: __( 'All selected terms' ), value: 'AND' },
 								] }
 								onChange={ ( value ) => {
 									setAttributes( { taxonomies: updatedTaxonomies( index, 'operator', value ) } );
@@ -532,9 +532,11 @@ registerBlockType( 'happyprime/latest-custom-posts', {
 									latestPosts: []
 								} );
 							} }
+							min={ 1 }
+							max={ 100 }
 						/>
 						<SelectControl
-							label="Post Type"
+							label={ __( 'Post Type' ) }
 							value={ customPostType }
 							options={ postTypeOptions }
 							onChange={ ( customPostType ) => {
