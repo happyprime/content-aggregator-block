@@ -522,13 +522,8 @@ registerBlockType( 'happyprime/latest-custom-posts', {
 								}
 							} }
 						/>
-						<ToggleControl
-							label={ __( 'Display post date' ) }
-							checked={ displayPostDate }
-							onChange={ ( value ) => setAttributes( { displayPostDate: value } ) }
-						/>
-						<TextControl
-							label="Number of items"
+						<RangeControl
+							label={ __( 'Number of items' ) }
 							value={ itemCount }
 							onChange={ ( value ) => {
 								setAttributes( { itemCount: Number( value ) } );
