@@ -26,7 +26,6 @@ const {
 const {
 	PanelBody,
 	SelectControl,
-	TextControl,
 	ToggleControl,
 	Toolbar,
 	RangeControl,
@@ -239,6 +238,8 @@ registerBlockType( 'happyprime/latest-custom-posts', {
 			displayPostContent,
 			postContent,
 			excerptLength,
+			displayImage,
+			imageSize,
 		} = attributes;
 
 		const taxonomies = ( 0 < attributes.taxonomies.length )
@@ -334,6 +335,9 @@ registerBlockType( 'happyprime/latest-custom-posts', {
 						<time dateTime={ format( 'c', post.date_gmt ) } className="wp-block-latest-posts__post-date">
 							{ dateI18n( __experimentalGetSettings().formats.date, post.date_gmt ) }
 						</time>
+					}
+					{ displayImage && post.image[ imageSize ] &&
+						<img src={ post.image[ imageSize ] } />
 					}
 					{ displayPostContent && postContent === 'excerpt' &&
 						<div className="wp-block-latest-posts__post-excerpt">
@@ -649,7 +653,7 @@ registerBlockType( 'happyprime/latest-custom-posts', {
 						/>
 						{ displayPostContent &&
 							<RadioControl
-								label={ __( 'Show:' ) }
+								label={ __( 'Show' ) }
 								selected={ postContent }
 								options={ [
 									{ label: __( 'Excerpt' ), value: 'excerpt' },
@@ -665,6 +669,19 @@ registerBlockType( 'happyprime/latest-custom-posts', {
 								onChange={ ( value ) => setAttributes( { excerptLength: value } ) }
 								min={ 10 }
 								max={ 100 }
+							/>
+						}
+						<ToggleControl
+							label={ __( 'Display featured image' ) }
+							checked={ displayImage }
+							onChange={ ( value ) => setAttributes( { displayImage: value } ) }
+						/>
+						{ displayImage &&
+							<SelectControl
+								label={ __( 'Image size' ) }
+								selected={ imageSize }
+								options={ select( 'core/editor' ).getEditorSettings().lcpImageSizeOptions }
+								onChange={ ( value ) => setAttributes( { imageSize: value } ) }
 							/>
 						}
 					</PanelBody>
