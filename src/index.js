@@ -224,6 +224,7 @@ registerBlockType( 'happyprime/latest-custom-posts', {
 			setAttributes,
 			setState,
 			className,
+			doingLatestPostsFetch,
 		} = props;
 
 		const {
@@ -704,9 +705,11 @@ registerBlockType( 'happyprime/latest-custom-posts', {
 					<p className="happyprime-block-latest-custom-posts_error">{
 						( errorMessage )
 							? errorMessage
-							: ( customPostType )
-								? <Spinner />
-								: 'Select a post type in this block\'s settings.'
+							: ( !customPostType )
+								? __( 'Select a post type in this block\'s settings.' )
+								: ( doingLatestPostsFetch )
+									? <Spinner />
+									: __( 'No current items' )
 					}</p>
 				) }
 			</Fragment>

@@ -196,13 +196,6 @@ function render_block( $attributes ) {
 	$args       = build_query_args( $attributes );
 	$posts      = get_posts( $args );
 
-	// Render nothing if no posts are available.
-	if ( empty( $posts ) ) {
-		return '';
-	}
-
-	ob_start();
-
 	$container_class = 'wp-block-latest-posts wp-block-latest-posts__list happyprime-latest-custom-posts';
 
 	if ( isset( $attributes['align'] ) ) {
@@ -224,6 +217,23 @@ function render_block( $attributes ) {
 	if ( isset( $attributes['className'] ) ) {
 		$container_class .= ' ' . $attributes['className'];
 	}
+
+	// Render "No current items" message if no posts are available.
+	if ( empty( $posts ) ) {
+		$container_class .= ' happyprime-latest-custom-posts_no-posts';
+
+		ob_start();
+		?>
+		<ul class="<?php echo esc_attr( $container_class ); ?>">
+			<li>No current items</li>
+		</ul>
+		<?php
+		$html = ob_get_clean();
+
+		return $html;
+	}
+
+	ob_start();
 
 	?>
 	<ul class="<?php echo esc_attr( $container_class ); ?>">
