@@ -10,6 +10,7 @@ namespace HappyPrime\LatestCustomPosts\Block;
 
 add_action( 'init', __NAMESPACE__ . '\\register_block' );
 add_action( 'enqueue_block_editor_assets', __NAMESPACE__ . '\enqueue_block_editor_assets' );
+add_action( 'rest_api_init', __NAMESPACE__ . '\\register_route' );
 
 /**
  * Provide a block version number for scripts.
@@ -21,7 +22,7 @@ function block_version() {
 }
 
 /**
- * Registers the `core/latest-posts` block on server.
+ * Registers the `happyprime/latest-custom-posts` block on server.
  */
 function register_block() {
 	register_block_type(
@@ -32,13 +33,13 @@ function register_block() {
 					'type'    => 'string',
 					'default' => 'post,posts',
 				),
-				'customTaxonomy'  => array(
+				'taxonomies'      => array(
+					'type'    => 'array',
+					'default' => array(),
+				),
+				'taxRelation'     => array(
 					'type'    => 'string',
 					'default' => '',
-				),
-				'termID'          => array(
-					'type'    => 'integer',
-					'default' => 0,
 				),
 				'itemCount'       => array(
 					'type'    => 'integer',
@@ -64,10 +65,84 @@ function register_block() {
 					'type'    => 'integer',
 					'default' => 2,
 				),
+				// Deprecated.
+				'customTaxonomy'  => array(),
+				'termID'          => array(
+					'type'    => 'integer',
+					'default' => 0,
+				),
 			),
 			'render_callback' => __NAMESPACE__ . '\\render_block',
 		)
 	);
+}
+
+/**
+ * Builds out query arguments for the given attributes.
+ *
+ * @param array $attributes The block attributes.
+ *
+ * @return array The built query arguments.
+ */
+function build_query_args( $attributes ) {
+	$post_type = explode( ',', $attributes['customPostType'] );
+
+	$args = array(
+		'post_type'      => $post_type[0],
+		'posts_per_page' => absint( $attributes['itemCount'] ),
+		'order'          => $attributes['order'],
+		'orderby'        => $attributes['orderBy'],
+	);
+
+	// If this is a previous version of the block, overwrite
+	// the `customTaxonomy` attribute using the new format.
+	if ( $attributes['termID'] && ! is_array( $attributes['customTaxonomy'] ) ) {
+		$attributes['customTaxonomy'] = array(
+			array(
+				'slug'  => $attributes['customTaxonomy'],
+				'terms' => array( $attributes['termID'] ),
+			),
+		);
+	}
+
+	// Use the new `taxonomies` attribute if available.
+	$taxonomies = ( ! empty( $attributes['taxonomies'] ) )
+		? $attributes['taxonomies']
+		: $attributes['customTaxonomy'];
+
+	if ( ! empty( $taxonomies ) ) {
+		$tax_query = array();
+
+		if ( '' !== $attributes['taxRelation'] ) {
+			$tax_query['relation'] = $attributes['taxRelation'];
+		}
+
+		foreach ( $taxonomies as $taxonomy ) {
+
+			// Skip this taxonomy if it has no term options.
+			if ( empty( $taxonomy['terms'] ) ) {
+				continue;
+			}
+
+			$slug = explode( ',', $taxonomy['slug'] );
+
+			$settings = array(
+				'taxonomy' => $slug[0],
+				'field'    => 'id',
+				'terms'    => $taxonomy['terms'],
+			);
+
+			if ( $taxonomy['operator'] ) {
+				$settings['operator'] = $taxonomy['operator'];
+			}
+
+			$tax_query[] = $settings;
+		}
+
+		$args['tax_query'] = $tax_query; // phpcs:ignore
+	}
+
+	return $args;
 }
 
 /**
@@ -80,8 +155,8 @@ function register_block() {
 function render_block( $attributes ) {
 	$defaults   = array(
 		'customPostType'  => 'post,posts',
-		'customTaxonomy'  => '',
-		'termID'          => 0,
+		'taxonomies'      => array(),
+		'taxRelation'     => '',
 		'itemCount'       => 3,
 		'order'           => 'desc',
 		'orderBy'         => 'date',
@@ -89,31 +164,11 @@ function render_block( $attributes ) {
 		'postLayout'      => 'list',
 		'columns'         => 2,
 		'className'       => '',
+		'customTaxonomy'  => array(),
 	);
 	$attributes = wp_parse_args( $attributes, $defaults );
-
-	$post_type = explode( ',', $attributes['customPostType'] );
-
-	$args = array(
-		'post_type'       => $post_type[0],
-		'posts_per_page'  => absint( $attributes['itemCount'] ),
-		'order'           => $attributes['order'],
-		'orderby'         => $attributes['orderBy'],
-	);
-
-	if ( '' !== $attributes['customTaxonomy'] && 0 < $attributes['termID'] ) {
-		$taxonomy = explode( ',', $attributes['customTaxonomy'] );
-
-		$args['tax_query'] = array( // phpcs:ignore
-			array(
-				'taxonomy' => $taxonomy[0],
-				'field'    => 'id',
-				'terms'    => $attributes['termID'],
-			),
-		);
-	}
-
-	$posts = get_posts( $args );
+	$args       = build_query_args( $attributes );
+	$posts      = get_posts( $args );
 
 	// Render nothing if no posts are available.
 	if ( empty( $posts ) ) {
@@ -123,6 +178,7 @@ function render_block( $attributes ) {
 	ob_start();
 
 	$container_class = 'wp-block-latest-posts wp-block-latest-posts__list happyprime-latest-custom-posts';
+
 	if ( isset( $attributes['align'] ) ) {
 		$container_class .= ' align' . $attributes['align'];
 	}
@@ -185,4 +241,67 @@ function enqueue_block_editor_assets() {
 		block_version(),
 		true
 	);
+
+	wp_enqueue_style(
+		'hp-latest-custom-posts',
+		plugins_url( 'css/editor.css', __DIR__ ),
+		array(
+			'wp-edit-blocks',
+		),
+		block_version()
+	);
+}
+
+/**
+ * Register a REST API route for this block.
+ */
+function register_route() {
+	register_rest_route(
+		'lcp/v1',
+		'posts',
+		array(
+			'methods'  => 'GET',
+			'callback' => __NAMESPACE__ . '\rest_response',
+		)
+	);
+}
+
+/**
+ * Return posts based on the provided parameters.
+ *
+ * @param \WP_Request $request The incoming REST API request object.
+ *
+ * @return array Posts found using the provided parameters.
+ */
+function rest_response( $request ) {
+	$attributes = array(
+		'customPostType' => $request->get_param( 'post_type' ) ? $request->get_param( 'post_type' ) : 'post,posts',
+		'taxonomies'     => $request->get_param( 'taxonomies' ) ? $request->get_param( 'taxonomies' ) : array(),
+		'taxRelation'    => $request->get_param( 'tax_relation' ) ? $request->get_param( 'tax_relation' ) : '',
+		'itemCount'      => $request->get_param( 'per_page' ) ? $request->get_param( 'per_page' ) : 3,
+		'order'          => $request->get_param( 'order' ) ? $request->get_param( 'order' ) : 'desc',
+		'orderBy'        => $request->get_param( 'order_by' ) ? $request->get_param( 'order_by' ) : 'date',
+	);
+	$args       = build_query_args( $attributes );
+	$query      = new \WP_Query( $args );
+
+	// Assume no posts match the criteria by default.
+	$posts = array();
+
+	if ( $query->have_posts() ) {
+		while ( $query->have_posts() ) {
+			$query->the_post();
+
+			$post = array(
+				'title'    => get_the_title(),
+				'date_gmt' => get_the_date( '' ),
+				'link'     => get_the_permalink(),
+			);
+
+			$posts[] = $post;
+		}
+		wp_reset_postdata();
+	}
+
+	return $posts;
 }

@@ -30,12 +30,15 @@ const {
 	ToggleControl,
 	Toolbar,
 	RangeControl,
+	RadioControl,
+	IconButton,
+	Spinner,
 } = wp.components;
 
 const {
 	InspectorControls,
 	BlockControls,
-} = wp.editor;
+} = ( 'undefined' === typeof wp.blockEditor ) ? wp.editor : wp.blockEditor;
 
 const {
 	addQueryArgs,
@@ -52,6 +55,12 @@ const {
 } = wp;
 
 const MAX_POSTS_COLUMNS = 6;
+
+const TAXONOMY_SETTING = {
+	slug: '',
+	terms: [],
+	operator: 'IN',
+};
 
 // Register the block.
 registerBlockType( 'happyprime/latest-custom-posts', {
@@ -74,45 +83,6 @@ registerBlockType( 'happyprime/latest-custom-posts', {
 		html: false,
 	},
 
-	attributes: {
-		customPostType: {
-			type: 'string',
-			default: 'post,posts',
-		},
-		customTaxonomy: {
-			type: 'string',
-			default: '',
-		},
-		termID: {
-			type: 'integer',
-			default: 0,
-		},
-		itemCount: {
-			type: 'integer',
-			default: 3,
-		},
-		order: {
-			type: 'string',
-			default: 'desc',
-		},
-		orderBy: {
-			type: 'string',
-			default: 'date',
-		},
-		displayPostDate: {
-			type: 'boolean',
-			default: false
-		},
-		postLayout: {
-			type: 'string',
-			default: 'list',
-		},
-		columns: {
-			type: 'integer',
-			default: 2,
-		},
-	},
-
 	edit: compose( [
 		withState( {
 			latestPosts: [],
@@ -126,6 +96,7 @@ registerBlockType( 'happyprime/latest-custom-posts', {
 		} ),
 		withSelect( ( select, props ) => {
 			const {
+				attributes,
 				setState,
 				latestPosts,
 				doingLatestPostsFetch,
@@ -138,12 +109,22 @@ registerBlockType( 'happyprime/latest-custom-posts', {
 
 			const {
 				customPostType,
-				customTaxonomy,
-				termID,
 				itemCount,
+				taxRelation,
 				order,
 				orderBy,
-			} = props.attributes;
+			} = attributes;
+
+			const taxonomies = ( 0 < attributes.taxonomies.length )
+				? attributes.taxonomies
+				: ( !attributes.customTaxonomy )
+					? []
+					: ( 'string' !== typeof attributes.customTaxonomy )
+						? attributes.customTaxonomy
+						: [ {
+							slug: attributes.customTaxonomy,
+							terms: [ `${attributes.termID}` ],
+						} ];
 
 			let postID = select( 'core/editor' ).getCurrentPostId();
 
@@ -158,33 +139,41 @@ registerBlockType( 'happyprime/latest-custom-posts', {
 				doTermRequest = true;
 			}
 
-			if ( postID && '' !== customTaxonomy && doTermRequest ) {
+			if ( postID && taxonomies && 0 < taxonomies.length && doTermRequest ) {
 				setState( {
 					doingTermsFetch: true,
 					triggerTermsRefresh: false,
 				} );
 
-				let restSlug = customTaxonomy.split( ',' )[1];
+				let terms = [];
 
-				if ( undefined === typeof restSlug ) {
-					setState( {
-						doingTermsFetch: false,
-					} );
-				}
+				taxonomies.forEach( ( taxonomy, index ) => {
 
-				apiFetch( {
-					path: addQueryArgs( '/wp/v2/' + restSlug, { per_page: 100 } ),
-				} ).then( data => {
-					setState( {
-						taxonomyTerms: data,
-						doingTermsFetch: false,
+					const restSlug = taxonomy.slug.split( ',' )[1];
+
+					if ( undefined === typeof restSlug ) {
+						setState( { doingTermsFetch: false } );
+					}
+
+					apiFetch( {
+						path: addQueryArgs( '/wp/v2/' + restSlug, { per_page: 100 } ),
+					} ).then( data => {
+						const termData = data.map( term => {
+							return {
+								label: term.name,
+								value: term.id,
+							}
+						} );
+
+						Object.assign( terms, { [ index ]: termData } );
+					} ).catch( error => {
+						setState( { errorMessage: error.message } );
 					} );
-				} ).catch( error => {
-					setState( {
-						errorMessage: error.message,
-						taxonomyTerms: [],
-						doingTermsFetch: false,
-					} );
+				} );
+
+				setState( {
+					taxonomyTerms: terms,
+					doingTermsFetch: false,
 				} );
 			}
 
@@ -194,21 +183,23 @@ registerBlockType( 'happyprime/latest-custom-posts', {
 					triggerRefresh: false,
 				} );
 
-				let restSlug = customPostType.split( ',' )[1];
-				let termSlug = customTaxonomy.split( ',' )[1];
-
-				let data = {
+				let fetchData = {
+					post_type: customPostType.split( ',' )[0],
 					per_page: itemCount,
 					order: order,
 					orderby: orderBy,
 				};
 
-				if ( 0 < termID ) {
-					data[ termSlug ] = termID;
+				if ( taxonomies ) {
+					fetchData['taxonomies'] = taxonomies;
+
+					if ( taxRelation ) {
+						fetchData['tax_relation'] = taxRelation;
+					}
 				}
 
 				apiFetch( {
-					path: addQueryArgs( '/wp/v2/' + restSlug, data ),
+					path: addQueryArgs( '/lcp/v1/posts/', fetchData ),
 				} ).then( data => {
 					setState( {
 						latestPosts: data,
@@ -239,8 +230,7 @@ registerBlockType( 'happyprime/latest-custom-posts', {
 		const {
 			itemCount,
 			customPostType,
-			customTaxonomy,
-			termID,
+			taxRelation,
 			order,
 			orderBy,
 			displayPostDate,
@@ -248,10 +238,21 @@ registerBlockType( 'happyprime/latest-custom-posts', {
 			columns,
 		} = attributes;
 
+		const taxonomies = ( 0 < attributes.taxonomies.length )
+			? attributes.taxonomies
+			: ( !attributes.customTaxonomy )
+				? []
+				: ( 'string' !== typeof attributes.customTaxonomy )
+					? attributes.customTaxonomy
+					: [ {
+						slug: attributes.customTaxonomy,
+						terms: [ `${attributes.termID}` ],
+					} ];
+
 		let displayPosts;
 
 		// Ensure the number of posts is limited to the expected number of posts.
-		if ( posts.length > itemCount ) {
+		if ( posts && posts.length > itemCount ) {
 			displayPosts = posts.slice( 0, itemCount );
 		} else {
 			displayPosts = posts;
@@ -262,7 +263,6 @@ registerBlockType( 'happyprime/latest-custom-posts', {
 		let postTypeOptions   = [];
 		let taxonomySlugs     = [];
 		let taxonomyOptions   = [ { label: 'None', value: '' } ];
-		let termOptions       = [ { label: 'None', value: 0 } ];
 
 		if ( null === currentTypes ) {
 			currentTypes = [];
@@ -292,10 +292,6 @@ registerBlockType( 'happyprime/latest-custom-posts', {
 			}
 		} );
 
-		terms.forEach( function ( term ) {
-			termOptions.push( { label: term.name, value: term.id } );
-		} );
-
 		const layoutControls = [
 			{
 				icon: 'list-view',
@@ -312,7 +308,7 @@ registerBlockType( 'happyprime/latest-custom-posts', {
 		];
 
 		const displayListItem = ( post ) => {
-			const titleTrimmed = post.title.rendered.trim();
+			const titleTrimmed = post.title.trim();
 
 			return (
 				<li>
@@ -334,12 +330,152 @@ registerBlockType( 'happyprime/latest-custom-posts', {
 			);
 		};
 
+		const updatedTaxonomies = ( index, property, value ) => {
+			let taxonomiesUpdate = Object.values( {
+				...taxonomies,
+				[ index ]: {
+					...taxonomies[ index ],
+					[ property ]: value,
+				}
+			} );
+
+			// Resets the `terms` and `operator` properties when the slug is changed.
+			if ( 'slug' === property && taxonomies[ index ] && value !== taxonomies[ index ].slug ) {
+				taxonomiesUpdate = Object.values( {
+					...taxonomiesUpdate,
+					[ index ]: {
+						...taxonomiesUpdate[ index ],
+						terms: [],
+						operator: undefined,
+					}
+				} );
+			}
+
+			// Handles changes to the `operator` property when terms are changed.
+			if ( 'terms' === property ) {
+				const operatorValue = ( !taxonomies[ index ].operator && 1 < value.length )
+					? 'IN'
+					: ( 1 < value.length )
+						? taxonomies[ index ].operator
+						: undefined;
+
+				taxonomiesUpdate = Object.values( {
+					...taxonomiesUpdate,
+					[ index ]: {
+						...taxonomiesUpdate[ index ],
+						operator: operatorValue,
+					}
+				} );
+			}
+
+			// Remove deprecated taxonomy attributes.
+			if ( attributes.customTaxonomy || attributes.termID ) {
+				setAttributes( {
+					customTaxonomy: undefined,
+					termID: undefined,
+				} );
+			}
+
+			return taxonomiesUpdate;
+		}
+
+		const taxonomySetting = ( taxonomy, index ) => {
+			return (
+				<div className="happyprime-block-latest-custom-posts_taxonomy-setting-wrapper">
+					{ 0 < index && (
+						<IconButton
+							className="happyprime-block-latest-custom-posts_remove-taxonomy-setting"
+							icon="dismiss"
+							label={ __( 'Remove taxonomy setting' ) }
+							onClick={ () => {
+								taxonomies.splice( index, 1 );
+
+								setAttributes( { taxonomies: [ ...taxonomies ] } );
+
+								if ( 1 === taxonomies.length ) {
+									setAttributes( { taxRelation: undefined } );
+								}
+
+								setState( {
+									triggerRefresh: true,
+									latestPosts: [],
+								} );
+							} }
+						/>
+					) }
+					<div className="happyprime-block-latest-custom-posts_taxonomy-setting">
+						<SelectControl
+							label="Taxonomy"
+							value={ ( taxonomy.slug ) ? taxonomy.slug : '' }
+							options={ taxonomyOptions }
+							onChange={ ( value ) => {
+								if ( '' === value ) {
+									if ( 1 === taxonomies.length ) {
+										setAttributes( { taxonomies: [] } );
+									} else {
+										taxonomies.splice( index, 1 );
+
+										setAttributes( { taxonomies: [ ...taxonomies ] } );
+									}
+								} else {
+									setAttributes( { taxonomies: updatedTaxonomies( index, 'slug', value ) } );
+									setState( {
+										triggerTermsRefresh: true,
+										taxonomyTerms: Object.assign( terms, { [ index ]: [] } ),
+									} );
+								}
+
+								setState( {
+									triggerRefresh: true,
+									latestPosts: [],
+								} );
+							} }
+						/>
+						{ ( taxonomy.slug !== '' && terms[ index ] && 0 < terms[ index ].length ) && (
+							<SelectControl
+								multiple
+								label="Term(s)"
+								help="Ctrl/Cmd + click to select multiple terms"
+								value={ taxonomy.terms }
+								options={ terms[ index ] }
+								onChange={ ( value ) => {
+									setAttributes( { taxonomies: updatedTaxonomies( index, 'terms', value ) } );
+									setState( {
+										triggerRefresh: true,
+										latestPosts: [],
+									} );
+								} }
+							/>
+						) }
+						{ ( taxonomy.terms && 1 < taxonomy.terms.length ) && (
+							<RadioControl
+								value={ taxonomy.operator }
+								label="Show posts with:"
+								selected={ taxonomy.operator }
+								options={ [
+									{ label: 'Any selected terms', value: 'IN' },
+									{ label: 'All selected terms', value: 'AND' },
+								] }
+								onChange={ ( value ) => {
+									setAttributes( { taxonomies: updatedTaxonomies( index, 'operator', value ) } );
+									setState( {
+										triggerRefresh: true,
+										latestPosts: [],
+									} );
+								} }
+							/>
+						) }
+					</div>
+				</div>
+			);
+		}
+
 		return (
 			<Fragment>
 				<InspectorControls>
 					<PanelBody
 						title={ __( 'Settings' ) }
-						className="panelbody-related-stories"
+						className="panelbody-custom-latest-posts"
 					>
 						<SelectControl
 							key="query-controls-order-select"
@@ -379,7 +515,10 @@ registerBlockType( 'happyprime/latest-custom-posts', {
 
 								if ( atts.order || atts.orderBy ) {
 									setAttributes( atts );
-									setState( { triggerRefresh: true, latestPosts: [] } );
+									setState( {
+										triggerRefresh: true,
+										latestPosts: []
+									} );
 								}
 							} }
 						/>
@@ -393,7 +532,10 @@ registerBlockType( 'happyprime/latest-custom-posts', {
 							value={ itemCount }
 							onChange={ ( value ) => {
 								setAttributes( { itemCount: Number( value ) } );
-								setState( { triggerRefresh: true, latestPosts: [] } );
+								setState( {
+									triggerRefresh: true,
+									latestPosts: []
+								} );
 							} }
 						/>
 						<SelectControl
@@ -401,7 +543,10 @@ registerBlockType( 'happyprime/latest-custom-posts', {
 							value={ customPostType }
 							options={ postTypeOptions }
 							onChange={ ( customPostType ) => {
-								setAttributes( { customPostType, customTaxonomy: '', termID: 0 } );
+								setAttributes( {
+									customPostType,
+									taxonomies: [],
+								} );
 								setState( {
 									triggerRefresh: true,
 									latestPosts: [],
@@ -409,34 +554,48 @@ registerBlockType( 'happyprime/latest-custom-posts', {
 								} );
 							} }
 						/>
-						{ customPostType !== '' && (
-							<SelectControl
-								label="Taxonomy"
-								value={ customTaxonomy }
-								options={ taxonomyOptions }
-								onChange={ ( customTaxonomy ) => {
-									setAttributes( { customTaxonomy } );
-									setState( {
-										triggerTermsRefresh: true,
-										taxonomyTerms: []
-									} );
-								} }
-							/>
-						) }
-						{ customTaxonomy !== '' && 0 < termOptions.length && (
-							<SelectControl
-								label="Term"
-								value={ termID }
-								options={ termOptions }
-								onChange={ ( value ) => {
-									setAttributes( { termID: Number( value ) } );
-									setState( {
-										triggerRefresh: true,
-										latestPosts: [],
-									} );
-								} }
-							/>
-						) }
+						<div className="happyprime-block-latest-custom-posts_taxonomy">
+							{ ( taxonomies && 1 < taxonomies.length ) && (
+								<p>{ __( 'Taxonomy Settings' ) }</p>
+							) }
+							<div className="happyprime-block-latest-custom-posts_taxonomy-settings">
+								{ ( taxonomies && 0 < taxonomies.length ) ? (
+									taxonomies.map( ( taxonomy, index ) => taxonomySetting( taxonomy, index ) )
+								) : (
+									taxonomySetting( TAXONOMY_SETTING, 0 )
+								) }
+							</div>
+							{ ( taxonomies && 1 < taxonomies.length ) && (
+								<RadioControl
+									label={ __( 'Relation' ) }
+									selected={ taxRelation }
+									options={ [
+										{ label: __( 'And' ), value: 'AND' },
+										{ label: __( 'Or' ), value: 'OR' },
+									] }
+									onChange={ ( option ) => {
+										setAttributes( { taxRelation: option } );
+										setState( {
+											triggerRefresh: true,
+											latestPosts: [],
+										} );
+									} }
+								/>
+							) }
+							{ ( taxonomies && 0 < taxonomies.length && taxonomies[0].terms && 0 < taxonomies[0].terms.length ) && (
+								<IconButton
+									icon="plus-alt"
+									label={ __( 'Add more taxonomy settings' ) }
+									onClick={ () => {
+										setAttributes( { taxonomies: taxonomies.concat( TAXONOMY_SETTING ) } );
+
+										if ( !taxRelation ) {
+											setAttributes( { taxRelation: 'AND' } )
+										}
+									} }
+								>{ __( 'Add more taxonomy settings' ) }</IconButton>
+							) }
+						</div>
 						{ postLayout === 'grid' &&
 							<RangeControl
 								label={ __( 'Columns' ) }
@@ -464,7 +623,13 @@ registerBlockType( 'happyprime/latest-custom-posts', {
 						{ displayPosts && displayPosts.map( post => displayListItem( post ) ) }
 					</ul>
 				) : (
-					<p className="happyprime-block-latest-custom-posts_error">{ errorMessage ? errorMessage : 'Select a post type in this block\'s settings.' }</p>
+					<p className="happyprime-block-latest-custom-posts_error">{
+						( errorMessage )
+							? errorMessage
+							: ( customPostType )
+								? <Spinner />
+								: 'Select a post type in this block\'s settings.'
+					}</p>
 				) }
 			</Fragment>
 		);
