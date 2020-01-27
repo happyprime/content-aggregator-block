@@ -16,6 +16,10 @@ jobs:
       uses: actions/setup-node@v1
       with:
         node-version: '10.x'
+    - name: Install npm dependencies
+      run: npm install
+    - name: Build script files
+      run: npm run build
     - name: Deploy to Server
       uses: easingthemes/ssh-deploy@v2.0.7
       env:
