@@ -380,7 +380,8 @@ function rest_response( $request ) {
 }
 
 /**
- * .
+ * Adds image size data to the editor settings so that it is immediately
+ * available to the block.
  *
  * @param array $editor_settings Editor settings.
  *
