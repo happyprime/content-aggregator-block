@@ -11,6 +11,7 @@ namespace HappyPrime\LatestCustomPosts\Block;
 add_action( 'init', __NAMESPACE__ . '\\register_block' );
 add_action( 'enqueue_block_editor_assets', __NAMESPACE__ . '\enqueue_block_editor_assets' );
 add_action( 'rest_api_init', __NAMESPACE__ . '\\register_route' );
+add_filter( 'block_editor_settings', __NAMESPACE__ . '\\image_size_options', 10, 1 );
 
 /**
  * Provide a block version number for scripts.
@@ -29,45 +30,65 @@ function register_block() {
 		'happyprime/latest-custom-posts',
 		array(
 			'attributes'      => array(
-				'customPostType'  => array(
+				'customPostType'     => array(
 					'type'    => 'string',
 					'default' => 'post,posts',
 				),
-				'taxonomies'      => array(
+				'taxonomies'         => array(
 					'type'    => 'array',
 					'default' => array(),
 				),
-				'taxRelation'     => array(
+				'taxRelation'        => array(
 					'type'    => 'string',
 					'default' => '',
 				),
-				'itemCount'       => array(
+				'itemCount'          => array(
 					'type'    => 'integer',
 					'default' => 3,
 				),
-				'order'           => array(
+				'order'              => array(
 					'type'    => 'string',
 					'default' => 'desc',
 				),
-				'orderBy'         => array(
+				'orderBy'            => array(
 					'type'    => 'string',
 					'default' => 'date',
 				),
-				'displayPostDate' => array(
+				'displayPostDate'    => array(
 					'type'    => 'boolean',
 					'default' => false,
 				),
-				'postLayout'      => array(
+				'postLayout'         => array(
 					'type'    => 'string',
 					'default' => 'list',
 				),
-				'columns'         => array(
+				'columns'            => array(
 					'type'    => 'integer',
 					'default' => 2,
 				),
+				'displayPostContent' => array(
+					'type'    => 'boolean',
+					'default' => false,
+				),
+				'postContent'        => array(
+					'type'    => 'string',
+					'default' => 'excerpt',
+				),
+				'excerptLength'      => array(
+					'type'    => 'number',
+					'default' => 55,
+				),
+				'displayImage'       => array(
+					'type'    => 'boolean',
+					'default' => false,
+				),
+				'imageSize'          => array(
+					'type'    => 'string',
+					'default' => 'thumbnail',
+				),
 				// Deprecated.
-				'customTaxonomy'  => array(),
-				'termID'          => array(
+				'customTaxonomy'     => array(),
+				'termID'             => array(
 					'type'    => 'integer',
 					'default' => 0,
 				),
@@ -154,28 +175,26 @@ function build_query_args( $attributes ) {
  */
 function render_block( $attributes ) {
 	$defaults   = array(
-		'customPostType'  => 'post,posts',
-		'taxonomies'      => array(),
-		'taxRelation'     => '',
-		'itemCount'       => 3,
-		'order'           => 'desc',
-		'orderBy'         => 'date',
-		'displayPostDate' => false,
-		'postLayout'      => 'list',
-		'columns'         => 2,
-		'className'       => '',
-		'customTaxonomy'  => array(),
+		'customPostType'     => 'post,posts',
+		'taxonomies'         => array(),
+		'taxRelation'        => '',
+		'itemCount'          => 3,
+		'order'              => 'desc',
+		'orderBy'            => 'date',
+		'displayPostDate'    => false,
+		'postLayout'         => 'list',
+		'columns'            => 2,
+		'className'          => '',
+		'customTaxonomy'     => array(),
+		'displayPostContent' => false,
+		'postContent'        => 'excerpt',
+		'excerptLength'      => 55,
+		'displayImage'       => false,
+		'imageSize'          => 'thumbnail',
 	);
 	$attributes = wp_parse_args( $attributes, $defaults );
 	$args       = build_query_args( $attributes );
 	$posts      = get_posts( $args );
-
-	// Render nothing if no posts are available.
-	if ( empty( $posts ) ) {
-		return '';
-	}
-
-	ob_start();
 
 	$container_class = 'wp-block-latest-posts wp-block-latest-posts__list happyprime-latest-custom-posts';
 
@@ -199,6 +218,23 @@ function render_block( $attributes ) {
 		$container_class .= ' ' . $attributes['className'];
 	}
 
+	// Render "No current items" message if no posts are available.
+	if ( empty( $posts ) ) {
+		$container_class .= ' happyprime-latest-custom-posts_no-posts';
+
+		ob_start();
+		?>
+		<ul class="<?php echo esc_attr( $container_class ); ?>">
+			<li>No current items</li>
+		</ul>
+		<?php
+		$html = ob_get_clean();
+
+		return $html;
+	}
+
+	ob_start();
+
 	?>
 	<ul class="<?php echo esc_attr( $container_class ); ?>">
 		<?php
@@ -212,6 +248,28 @@ function render_block( $attributes ) {
 					?>
 					<time datetime="<?php echo esc_attr( get_the_date( 'c', $post ) ); ?>" class="wp-block-latest-posts__post-date"><?php echo esc_html( get_the_date( '', $post ) ); ?></time>
 					<?php
+				}
+				if ( isset( $attributes['displayImage'] ) && $attributes['displayImage'] && has_post_thumbnail( $post ) ) {
+					$image_id = get_post_thumbnail_id( $post );
+					echo wp_get_attachment_image( $image_id, $attributes['imageSize'], false );
+				}
+				if ( isset( $attributes['displayPostContent'] ) && $attributes['displayPostContent'] && isset( $attributes['postContent'] ) ) {
+					if ( 'excerpt' === $attributes['postContent'] ) {
+						$post_excerpt    = ( $post->post_excerpt ) ? $post->post_excerpt : $post->post_content;
+						$trimmed_excerpt = esc_html( wp_trim_words( $post_excerpt, $attributes['excerptLength'], '&hellip;' ) );
+						?>
+						<div class="wp-block-latest-posts__post-excerpt">
+							<?php echo wp_kses_post( $trimmed_excerpt ); ?>
+						</div>
+						<?php
+					}
+					if ( 'full_post' === $attributes['postContent'] ) {
+						?>
+						<div class="wp-block-latest-posts__post-full-content">
+							<?php echo wp_kses_post( html_entity_decode( $post->post_content, ENT_QUOTES, get_option( 'blog_charset' ) ) ); ?>
+						</div>
+						<?php
+					}
 				}
 				?>
 			</li>
@@ -292,10 +350,25 @@ function rest_response( $request ) {
 		while ( $query->have_posts() ) {
 			$query->the_post();
 
+			$image_sizes = array();
+
+			if ( has_post_thumbnail( get_the_ID() ) ) {
+				$image_id = get_post_thumbnail_id( get_the_ID() );
+
+				foreach ( get_intermediate_image_sizes() as $size ) {
+					$image = wp_get_attachment_image_src( $image_id, $size );
+
+					$image_sizes[ $size ] = ( ! $image ) ? false : $image[0];
+				}
+			}
+
 			$post = array(
 				'title'    => get_the_title(),
 				'date_gmt' => get_the_date( '' ),
 				'link'     => get_the_permalink(),
+				'content'  => get_the_content(),
+				'excerpt'  => wp_strip_all_tags( get_the_excerpt(), true ),
+				'image'    => $image_sizes,
 			);
 
 			$posts[] = $post;
@@ -304,4 +377,27 @@ function rest_response( $request ) {
 	}
 
 	return $posts;
+}
+
+/**
+ * Adds image size data to the editor settings so that it is immediately
+ * available to the block.
+ *
+ * @param array $editor_settings Editor settings.
+ *
+ * @return array
+ */
+function image_size_options( $editor_settings ) {
+	$image_options = array();
+
+	foreach ( get_intermediate_image_sizes() as $size ) {
+		$image_options[] = array(
+			'label' => ucwords( str_replace( array( '-', '_' ), ' ', $size ) ),
+			'value' => $size,
+		);
+	}
+
+	$editor_settings['lcpImageSizeOptions'] = $image_options;
+
+	return $editor_settings;
 }

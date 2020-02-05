@@ -26,7 +26,6 @@ const {
 const {
 	PanelBody,
 	SelectControl,
-	TextControl,
 	ToggleControl,
 	Toolbar,
 	RangeControl,
@@ -225,6 +224,7 @@ registerBlockType( 'happyprime/latest-custom-posts', {
 			setAttributes,
 			setState,
 			className,
+			doingLatestPostsFetch,
 		} = props;
 
 		const {
@@ -236,6 +236,11 @@ registerBlockType( 'happyprime/latest-custom-posts', {
 			displayPostDate,
 			postLayout,
 			columns,
+			displayPostContent,
+			postContent,
+			excerptLength,
+			displayImage,
+			imageSize,
 		} = attributes;
 
 		const taxonomies = ( 0 < attributes.taxonomies.length )
@@ -262,7 +267,7 @@ registerBlockType( 'happyprime/latest-custom-posts', {
 		let currentTaxonomies = select( 'core' ).getTaxonomies();
 		let postTypeOptions   = [];
 		let taxonomySlugs     = [];
-		let taxonomyOptions   = [ { label: 'None', value: '' } ];
+		let taxonomyOptions   = [ { label: __( 'None' ), value: '' } ];
 
 		if ( null === currentTypes ) {
 			currentTypes = [];
@@ -310,6 +315,12 @@ registerBlockType( 'happyprime/latest-custom-posts', {
 		const displayListItem = ( post ) => {
 			const titleTrimmed = post.title.trim();
 
+			const excerptElement = document.createElement( 'div' );
+
+			excerptElement.innerHTML = post.excerpt;
+
+			const excerpt = excerptElement.textContent || excerptElement.innerText || '';
+
 			return (
 				<li>
 					<a href={ post.link } target="_blank" rel="noreferrer noopener">
@@ -325,6 +336,29 @@ registerBlockType( 'happyprime/latest-custom-posts', {
 						<time dateTime={ format( 'c', post.date_gmt ) } className="wp-block-latest-posts__post-date">
 							{ dateI18n( __experimentalGetSettings().formats.date, post.date_gmt ) }
 						</time>
+					}
+					{ displayImage && post.image[ imageSize ] &&
+						<img src={ post.image[ imageSize ] } />
+					}
+					{ displayPostContent && postContent === 'excerpt' &&
+						<div className="wp-block-latest-posts__post-excerpt">
+							<RawHTML
+								key="html"
+							>
+								{ excerptLength < excerpt.trim().split( ' ' ).length ?
+									excerpt.trim().split( ' ', excerptLength ).join( ' ' ) + '…' :
+									excerpt.trim().split( ' ', excerptLength ).join( ' ' ) }
+							</RawHTML>
+						</div>
+					}
+					{ displayPostContent && postContent === 'full_post' &&
+						<div className="wp-block-latest-posts__post-full-content">
+							<RawHTML
+								key="html"
+							>
+								{ post.content.trim() }
+							</RawHTML>
+						</div>
 					}
 				</li>
 			);
@@ -405,7 +439,7 @@ registerBlockType( 'happyprime/latest-custom-posts', {
 					) }
 					<div className="happyprime-block-latest-custom-posts_taxonomy-setting">
 						<SelectControl
-							label="Taxonomy"
+							label={ __( 'Taxonomy' ) }
 							value={ ( taxonomy.slug ) ? taxonomy.slug : '' }
 							options={ taxonomyOptions }
 							onChange={ ( value ) => {
@@ -434,8 +468,8 @@ registerBlockType( 'happyprime/latest-custom-posts', {
 						{ ( taxonomy.slug !== '' && terms[ index ] && 0 < terms[ index ].length ) && (
 							<SelectControl
 								multiple
-								label="Term(s)"
-								help="Ctrl/Cmd + click to select multiple terms"
+								label={ __( 'Term(s)' ) }
+								help={ __( 'Ctrl/Cmd + click to select multiple terms' ) }
 								value={ taxonomy.terms }
 								options={ terms[ index ] }
 								onChange={ ( value ) => {
@@ -450,11 +484,11 @@ registerBlockType( 'happyprime/latest-custom-posts', {
 						{ ( taxonomy.terms && 1 < taxonomy.terms.length ) && (
 							<RadioControl
 								value={ taxonomy.operator }
-								label="Show posts with:"
+								label={ __( 'Show posts with:' ) }
 								selected={ taxonomy.operator }
 								options={ [
-									{ label: 'Any selected terms', value: 'IN' },
-									{ label: 'All selected terms', value: 'AND' },
+									{ label: __( 'Any selected terms' ), value: 'IN' },
+									{ label: __( 'All selected terms' ), value: 'AND' },
 								] }
 								onChange={ ( value ) => {
 									setAttributes( { taxonomies: updatedTaxonomies( index, 'operator', value ) } );
@@ -474,7 +508,7 @@ registerBlockType( 'happyprime/latest-custom-posts', {
 			<Fragment>
 				<InspectorControls>
 					<PanelBody
-						title={ __( 'Settings' ) }
+						title={ __( 'Sorting and Filtering' ) }
 						className="panelbody-custom-latest-posts"
 					>
 						<SelectControl
@@ -522,13 +556,8 @@ registerBlockType( 'happyprime/latest-custom-posts', {
 								}
 							} }
 						/>
-						<ToggleControl
-							label={ __( 'Display post date' ) }
-							checked={ displayPostDate }
-							onChange={ ( value ) => setAttributes( { displayPostDate: value } ) }
-						/>
-						<TextControl
-							label="Number of items"
+						<RangeControl
+							label={ __( 'Number of items' ) }
 							value={ itemCount }
 							onChange={ ( value ) => {
 								setAttributes( { itemCount: Number( value ) } );
@@ -537,9 +566,11 @@ registerBlockType( 'happyprime/latest-custom-posts', {
 									latestPosts: []
 								} );
 							} }
+							min={ 1 }
+							max={ 100 }
 						/>
 						<SelectControl
-							label="Post Type"
+							label={ __( 'Post Type' ) }
 							value={ customPostType }
 							options={ postTypeOptions }
 							onChange={ ( customPostType ) => {
@@ -607,6 +638,54 @@ registerBlockType( 'happyprime/latest-custom-posts', {
 							/>
 						}
 					</PanelBody>
+					<PanelBody
+						title={ __( 'Post Content Settings' ) }
+						className="panelbody-custom-latest-posts"
+					>
+						<ToggleControl
+							label={ __( 'Display post date' ) }
+							checked={ displayPostDate }
+							onChange={ ( value ) => setAttributes( { displayPostDate: value } ) }
+						/>
+						<ToggleControl
+							label={ __( 'Display post content' ) }
+							checked={ displayPostContent }
+							onChange={ ( value ) => setAttributes( { displayPostContent: value } ) }
+						/>
+						{ displayPostContent &&
+							<RadioControl
+								label={ __( 'Show' ) }
+								selected={ postContent }
+								options={ [
+									{ label: __( 'Excerpt' ), value: 'excerpt' },
+									{ label: __( 'Full Post' ), value: 'full_post' },
+								] }
+								onChange={ ( value ) => setAttributes( { postContent: value } ) }
+							/>
+						}
+						{ displayPostContent && postContent === 'excerpt' &&
+							<RangeControl
+								label={ __( 'Max number of words in excerpt' ) }
+								value={ excerptLength }
+								onChange={ ( value ) => setAttributes( { excerptLength: value } ) }
+								min={ 10 }
+								max={ 100 }
+							/>
+						}
+						<ToggleControl
+							label={ __( 'Display featured image' ) }
+							checked={ displayImage }
+							onChange={ ( value ) => setAttributes( { displayImage: value } ) }
+						/>
+						{ displayImage &&
+							<SelectControl
+								label={ __( 'Image size' ) }
+								selected={ imageSize }
+								options={ select( 'core/editor' ).getEditorSettings().lcpImageSizeOptions }
+								onChange={ ( value ) => setAttributes( { imageSize: value } ) }
+							/>
+						}
+					</PanelBody>
 				</InspectorControls>
 				<BlockControls>
 					<Toolbar controls={ layoutControls } />
@@ -626,9 +705,11 @@ registerBlockType( 'happyprime/latest-custom-posts', {
 					<p className="happyprime-block-latest-custom-posts_error">{
 						( errorMessage )
 							? errorMessage
-							: ( customPostType )
-								? <Spinner />
-								: 'Select a post type in this block\'s settings.'
+							: ( !customPostType )
+								? __( 'Select a post type in this block\'s settings.' )
+								: ( doingLatestPostsFetch )
+									? <Spinner />
+									: __( 'No current items' )
 					}</p>
 				) }
 			</Fragment>
