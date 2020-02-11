@@ -20,15 +20,6 @@ jobs:
       run: npm install
     - name: Build script files
       run: npm run build
-    - name: Deploy to Fisheries
-      uses: easingthemes/ssh-deploy@v2.0.7
-      env:
-          SSH_PRIVATE_KEY: ${{ secrets.SERVER_SSH_KEY }}
-          ARGS: "-rltgoDzvO --exclude=.git --exclude=.gitignore --exclude=.github --exclude=node_modules --exclude=vendor --delete"
-          SOURCE: "./"
-          REMOTE_HOST: ${{ secrets.REMOTE_HOST }}
-          REMOTE_USER: ${{ secrets.REMOTE_USER }}
-          TARGET: ${{ secrets.REMOTE_TARGET }}
     - name: Deploy to Cleantech
       uses: easingthemes/ssh-deploy@v2.0.7
       env:
@@ -38,3 +29,34 @@ jobs:
           REMOTE_HOST: ${{ secrets.DEPLOY2_HOST }}
           REMOTE_USER: ${{ secrets.REMOTE_USER }}
           TARGET: ${{ secrets.REMOTE_TARGET }}
+    - name: Deploy to Fisheries
+      uses: HappyPrime/FTP-Deploy-Action@master
+      env:
+        FTP_METHOD: ftp
+        FTP_PORT: 21
+        FTP_SERVER: ${{ secrets.FTP_SERVER }}
+        FTP_USERNAME: ${{ secrets.FTP_USERNAME }}
+        FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
+        LOCAL_DIR: ${{ secrets.LOCAL_DIR }}
+        REMOTE_DIR: ${{ secrets.REMOTE_DIR }}
+    - name: Send deployment notification to Happy Prime Slack
+      if: success()
+      uses: rtCamp/action-slack-notify@v2.0.0
+      env:
+        SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
+        SLACK_ICON: https://github.com/happyprime.png
+        SLACK_CHANNE: river-deploys
+        SLACK_USERNAME: Happy Prime
+        SLACK_TITLE: Latest Custom Posts plugin deployment
+        SLACK_MESSAGE: 'The Latest Custom Posts plugin has been deployed to Cleantech and Fisheries :rocket:'
+    - name: Send error notification to Happy Prime Slack
+      if: failure()
+      uses: rtCamp/action-slack-notify@v2.0.0
+      env:
+        SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
+        SLACK_ICON: https://github.com/happyprime.png
+        SLACK_COLOR: '#ff0000'
+        SLACK_CHANNE: river-deploys
+        SLACK_USERNAME: Happy Prime
+        SLACK_TITLE: Latest Custom Posts plugin deployment
+        SLACK_MESSAGE: 'Deployment was not successful. :red_circle:'
