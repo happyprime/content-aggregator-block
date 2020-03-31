@@ -8,10 +8,10 @@
 
 namespace HappyPrime\LatestCustomPosts\Block;
 
-add_action( 'init', __NAMESPACE__ . '\\register_block' );
+add_action( 'init', __NAMESPACE__ . '\register_block' );
 add_action( 'enqueue_block_editor_assets', __NAMESPACE__ . '\enqueue_block_editor_assets' );
-add_action( 'rest_api_init', __NAMESPACE__ . '\\register_route' );
-add_filter( 'block_editor_settings', __NAMESPACE__ . '\\image_size_options', 10, 1 );
+add_action( 'rest_api_init', __NAMESPACE__ . '\register_route' );
+add_filter( 'block_editor_settings', __NAMESPACE__ . '\image_size_options', 10, 1 );
 
 /**
  * Provide a block version number for scripts.
@@ -93,7 +93,7 @@ function register_block() {
 					'default' => 0,
 				),
 			),
-			'render_callback' => __NAMESPACE__ . '\\render_block',
+			'render_callback' => __NAMESPACE__ . '\render_block',
 		)
 	);
 }
@@ -106,11 +106,24 @@ function register_block() {
  * @return array The built query arguments.
  */
 function build_query_args( $attributes ) {
-	$post_type = explode( ',', $attributes['customPostType'] );
+	$post_type      = explode( ',', $attributes['customPostType'] )[0];
+	$posts_per_page = absint( $attributes['itemCount'] );
+	$sticky_posts   = get_option( 'sticky_posts' );
+
+	// Reduce the count by the number of sticky posts, if applicable.
+	if ( 'post' === $post_type && is_array( $sticky_posts ) ) {
+		$sticky_count = count( $sticky_posts );
+
+		if ( $sticky_count < $posts_per_page ) {
+			$posts_per_page = $posts_per_page - $sticky_count;
+		} else {
+			$posts_per_page = 1;
+		}
+	}
 
 	$args = array(
-		'post_type'      => $post_type[0],
-		'posts_per_page' => absint( $attributes['itemCount'] ),
+		'post_type'      => $post_type,
+		'posts_per_page' => $posts_per_page,
 		'order'          => $attributes['order'],
 		'orderby'        => $attributes['orderBy'],
 	);
@@ -194,7 +207,7 @@ function render_block( $attributes ) {
 	);
 	$attributes = wp_parse_args( $attributes, $defaults );
 	$args       = build_query_args( $attributes );
-	$posts      = get_posts( $args );
+	$query      = new \WP_Query( $args );
 
 	$container_class = 'wp-block-latest-posts wp-block-latest-posts__list happyprime-latest-custom-posts';
 
@@ -218,8 +231,55 @@ function render_block( $attributes ) {
 		$container_class .= ' ' . $attributes['className'];
 	}
 
-	// Render "No current items" message if no posts are available.
-	if ( empty( $posts ) ) {
+	if ( $query->have_posts() ) {
+		ob_start();
+		?>
+		<ul class="<?php echo esc_attr( $container_class ); ?>">
+			<?php
+			while ( $query->have_posts() ) {
+				$query->the_post();
+				$post = get_post( get_the_ID() );
+				?>
+				<li>
+					<a href="<?php the_permalink(); ?>"><?php the_title(); ?></a>
+					<?php
+					if ( isset( $attributes['displayPostDate'] ) && $attributes['displayPostDate'] ) {
+						?>
+						<time datetime="<?php echo esc_attr( get_the_date( 'c' ) ); ?>" class="wp-block-latest-posts__post-date"><?php echo esc_html( get_the_date( '' ) ); ?></time>
+						<?php
+					}
+					if ( isset( $attributes['displayImage'] ) && $attributes['displayImage'] && has_post_thumbnail() ) {
+						$image_id = get_post_thumbnail_id();
+						echo wp_get_attachment_image( $image_id, $attributes['imageSize'], false );
+					}
+					if ( isset( $attributes['displayPostContent'] ) && $attributes['displayPostContent'] && isset( $attributes['postContent'] ) ) {
+						if ( 'excerpt' === $attributes['postContent'] ) {
+							$post_excerpt    = ( $post->post_excerpt ) ? $post->post_excerpt : $post->post_content;
+							$trimmed_excerpt = esc_html( wp_trim_words( $post_excerpt, $attributes['excerptLength'], '&hellip;' ) );
+							?>
+							<div class="wp-block-latest-posts__post-excerpt">
+								<?php echo wp_kses_post( $trimmed_excerpt ); ?>
+							</div>
+							<?php
+						}
+						if ( 'full_post' === $attributes['postContent'] ) {
+							?>
+							<div class="wp-block-latest-posts__post-full-content">
+								<?php echo wp_kses_post( html_entity_decode( $post->post_content, ENT_QUOTES, get_option( 'blog_charset' ) ) ); ?>
+							</div>
+							<?php
+						}
+					}
+					?>
+				</li>
+				<?php
+			}
+			?>
+		</ul>
+		<?php
+		$html = ob_get_clean();
+	} else {
+		// Render "No current items" message if no posts are available.
 		$container_class .= ' happyprime-latest-custom-posts_no-posts';
 
 		ob_start();
@@ -229,57 +289,7 @@ function render_block( $attributes ) {
 		</ul>
 		<?php
 		$html = ob_get_clean();
-
-		return $html;
 	}
-
-	ob_start();
-
-	?>
-	<ul class="<?php echo esc_attr( $container_class ); ?>">
-		<?php
-
-		foreach ( $posts as $post ) {
-			?>
-			<li>
-				<a href="<?php echo esc_url( get_permalink( $post ) ); ?>"><?php echo get_the_title( $post ); // phpcs:ignore ?></a>
-				<?php
-				if ( isset( $attributes['displayPostDate'] ) && $attributes['displayPostDate'] ) {
-					?>
-					<time datetime="<?php echo esc_attr( get_the_date( 'c', $post ) ); ?>" class="wp-block-latest-posts__post-date"><?php echo esc_html( get_the_date( '', $post ) ); ?></time>
-					<?php
-				}
-				if ( isset( $attributes['displayImage'] ) && $attributes['displayImage'] && has_post_thumbnail( $post ) ) {
-					$image_id = get_post_thumbnail_id( $post );
-					echo wp_get_attachment_image( $image_id, $attributes['imageSize'], false );
-				}
-				if ( isset( $attributes['displayPostContent'] ) && $attributes['displayPostContent'] && isset( $attributes['postContent'] ) ) {
-					if ( 'excerpt' === $attributes['postContent'] ) {
-						$post_excerpt    = ( $post->post_excerpt ) ? $post->post_excerpt : $post->post_content;
-						$trimmed_excerpt = esc_html( wp_trim_words( $post_excerpt, $attributes['excerptLength'], '&hellip;' ) );
-						?>
-						<div class="wp-block-latest-posts__post-excerpt">
-							<?php echo wp_kses_post( $trimmed_excerpt ); ?>
-						</div>
-						<?php
-					}
-					if ( 'full_post' === $attributes['postContent'] ) {
-						?>
-						<div class="wp-block-latest-posts__post-full-content">
-							<?php echo wp_kses_post( html_entity_decode( $post->post_content, ENT_QUOTES, get_option( 'blog_charset' ) ) ); ?>
-						</div>
-						<?php
-					}
-				}
-				?>
-			</li>
-			<?php
-		}
-
-		?>
-	</ul>
-	<?php
-	$html = ob_get_clean();
 
 	return $html;
 }
