@@ -86,6 +86,10 @@ function register_block() {
 					'type'    => 'string',
 					'default' => 'thumbnail',
 				),
+				'stickyPosts'       => array(
+					'type'    => 'boolean',
+					'default' => true,
+				),
 				// Deprecated.
 				'customTaxonomy'     => array(),
 				'termID'             => array(
@@ -111,7 +115,7 @@ function build_query_args( $attributes ) {
 	$sticky_posts   = get_option( 'sticky_posts' );
 
 	// Reduce the count by the number of sticky posts, if applicable.
-	if ( 'post' === $post_type && is_array( $sticky_posts ) ) {
+	if ( 'post' === $post_type && $attributes['stickyPosts'] && is_array( $sticky_posts ) ) {
 		$sticky_count = count( $sticky_posts );
 
 		if ( $sticky_count < $posts_per_page ) {
@@ -127,6 +131,11 @@ function build_query_args( $attributes ) {
 		'order'          => $attributes['order'],
 		'orderby'        => $attributes['orderBy'],
 	);
+
+	// Show sticky posts in their natural position, if applicable.
+	if ( 'post' === $post_type && ! $attributes['stickyPosts'] ) {
+		$args['ignore_sticky_posts'] = true;
+	}
 
 	// If this is a previous version of the block, overwrite
 	// the `customTaxonomy` attribute using the new format.
@@ -204,6 +213,7 @@ function render_block( $attributes ) {
 		'excerptLength'      => 55,
 		'displayImage'       => false,
 		'imageSize'          => 'thumbnail',
+		'stickyPosts'        => true,
 	);
 	$attributes = wp_parse_args( $attributes, $defaults );
 	$args       = build_query_args( $attributes );
@@ -343,12 +353,13 @@ function register_route() {
  */
 function rest_response( $request ) {
 	$attributes = array(
-		'customPostType' => $request->get_param( 'post_type' ) ? $request->get_param( 'post_type' ) : 'post,posts',
+		'customPostType' => $request->get_param( 'post_type' ) ? $request->get_param( 'post_type' ) : 'post',
 		'taxonomies'     => $request->get_param( 'taxonomies' ) ? $request->get_param( 'taxonomies' ) : array(),
 		'taxRelation'    => $request->get_param( 'tax_relation' ) ? $request->get_param( 'tax_relation' ) : '',
 		'itemCount'      => $request->get_param( 'per_page' ) ? $request->get_param( 'per_page' ) : 3,
 		'order'          => $request->get_param( 'order' ) ? $request->get_param( 'order' ) : 'desc',
 		'orderBy'        => $request->get_param( 'order_by' ) ? $request->get_param( 'order_by' ) : 'date',
+		'stickyPosts'    => $request->get_param( 'sticky_posts' ) ? true : false,
 	);
 	$args       = build_query_args( $attributes );
 	$query      = new \WP_Query( $args );
