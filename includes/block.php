@@ -87,7 +87,7 @@ function register_block() {
 					'type'    => 'string',
 					'default' => 'thumbnail',
 				),
-				'stickyPosts'       => array(
+				'stickyPosts'        => array(
 					'type'    => 'boolean',
 					'default' => true,
 				),
