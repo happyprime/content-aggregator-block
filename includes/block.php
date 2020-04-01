@@ -13,6 +13,7 @@ add_action( 'enqueue_block_editor_assets', __NAMESPACE__ . '\enqueue_block_edito
 add_action( 'pre_get_posts', __NAMESPACE__ . '\filter_pre_get_posts' );
 add_action( 'rest_api_init', __NAMESPACE__ . '\register_route' );
 add_filter( 'block_editor_settings', __NAMESPACE__ . '\image_size_options', 10, 1 );
+add_filter( 'post_class', __NAMESPACE__ . '\filter_post_classe', 10, 3 );
 
 /**
  * Provide a block version number for scripts.
@@ -284,7 +285,7 @@ function render_block( $attributes ) {
 				$query->the_post();
 				$post = get_post( get_the_ID() );
 				?>
-				<li <?php post_class(); ?>>
+				<li <?php post_class( 'lcpb-item' ); ?>>
 					<a href="<?php the_permalink(); ?>"><?php the_title(); ?></a>
 					<?php
 					if ( isset( $attributes['displayPostDate'] ) && $attributes['displayPostDate'] ) {
@@ -455,4 +456,35 @@ function image_size_options( $editor_settings ) {
 	$editor_settings['lcpImageSizeOptions'] = $image_options;
 
 	return $editor_settings;
+}
+
+/**
+ * Filters classes for posts that have the added `lcpb-item` class.
+ *
+ * @param array $classes An array of post class names.
+ * @param array $class   An array of additional class names added to the post.
+ * @param int   $post_id The post ID.
+ */
+function filter_post_classe( $classes, $class, $post_id ) {
+	if ( in_array( 'lcpb-item', $class, true ) ) {
+		$format = ( has_post_format( $post_id ) ) ? get_post_format( $post_id ) : 'standard';
+
+		// Filter out the `lcpb-item` flag and a handful of default classes.
+		$classes = array_diff(
+			$classes,
+			array(
+				'lcpb-item',
+				'hentry',
+				'post-' . $post_id,
+				get_post_type( $post_id ),
+				'status-' . get_post_status( $post_id ),
+				'format-' . $format,
+			)
+		);
+
+		// Prefix the remaining classes with `lcpb-`.
+		$classes = substr_replace( $classes, 'lcpb-', 0, 0 );
+	}
+
+	return $classes;
 }
