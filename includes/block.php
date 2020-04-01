@@ -10,6 +10,7 @@ namespace HappyPrime\LatestCustomPosts\Block;
 
 add_action( 'init', __NAMESPACE__ . '\register_block' );
 add_action( 'enqueue_block_editor_assets', __NAMESPACE__ . '\enqueue_block_editor_assets' );
+add_action( 'pre_get_posts', __NAMESPACE__ . '\filter_pre_get_posts' );
 add_action( 'rest_api_init', __NAMESPACE__ . '\register_route' );
 add_filter( 'block_editor_settings', __NAMESPACE__ . '\image_size_options', 10, 1 );
 
@@ -114,17 +115,6 @@ function build_query_args( $attributes ) {
 	$posts_per_page = absint( $attributes['itemCount'] );
 	$sticky_posts   = get_option( 'sticky_posts' );
 
-	// Reduce the count by the number of sticky posts, if applicable.
-	if ( 'post' === $post_type && $attributes['stickyPosts'] && is_array( $sticky_posts ) ) {
-		$sticky_count = count( $sticky_posts );
-
-		if ( $sticky_count < $posts_per_page ) {
-			$posts_per_page = $posts_per_page - $sticky_count;
-		} else {
-			$posts_per_page = 1;
-		}
-	}
-
 	$args = array(
 		'post_type'      => $post_type,
 		'posts_per_page' => $posts_per_page,
@@ -132,8 +122,24 @@ function build_query_args( $attributes ) {
 		'orderby'        => $attributes['orderBy'],
 	);
 
-	// Show sticky posts in their natural position, if applicable.
-	if ( 'post' === $post_type && ! $attributes['stickyPosts'] ) {
+	// Reduce the count by the number of sticky posts, if applicable.
+	// Otherwise, show sticky posts in their natural order.
+	if ( 'post' === $post_type && $attributes['stickyPosts'] && is_array( $sticky_posts ) ) {
+		$sticky_count = count( $sticky_posts );
+
+		// If the item count is greater than the sticky posts count,
+		// subtract the number of sticky posts from the item count.
+		// Otherwise, set as 1 so we don't pass 0 or -1.
+		$posts_per_page = ( $sticky_count < $posts_per_page )
+			? $posts_per_page - $sticky_count
+			: 1;
+
+		// Overwrite `posts_per_page` argument.
+		$args['posts_per_page'] = $posts_per_page;
+
+		// Add custom argument for `pre_get_posts` filter.
+		$args['lcp_sticky_posts'] = true;
+	} elseif ( 'post' === $post_type && ! $attributes['stickyPosts'] ) {
 		$args['ignore_sticky_posts'] = true;
 	}
 
@@ -186,6 +192,18 @@ function build_query_args( $attributes ) {
 	}
 
 	return $args;
+}
+
+/**
+ * Set the `is_home` property to `true` when the `lcp_sticky_posts` argument
+ * is set so that sticky posts are returned in our custom endpoint.
+ *
+ * @param WP_Query $query The WP_Query instance.
+ */
+function filter_pre_get_posts( $query ) {
+	if ( $query->get( 'lcp_sticky_posts' ) ) {
+		$query->is_home = true;
+	}
 }
 
 /**
