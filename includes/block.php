@@ -284,7 +284,7 @@ function render_block( $attributes ) {
 				$query->the_post();
 				$post = get_post( get_the_ID() );
 				?>
-				<li>
+				<li <?php post_class(); ?>>
 					<a href="<?php the_permalink(); ?>"><?php the_title(); ?></a>
 					<?php
 					if ( isset( $attributes['displayPostDate'] ) && $attributes['displayPostDate'] ) {
