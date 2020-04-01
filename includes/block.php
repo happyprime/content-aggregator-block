@@ -122,27 +122,6 @@ function build_query_args( $attributes ) {
 		'orderby'        => $attributes['orderBy'],
 	);
 
-	// Reduce the count by the number of sticky posts, if applicable.
-	// Otherwise, show sticky posts in their natural order.
-	if ( 'post' === $post_type && $attributes['stickyPosts'] && is_array( $sticky_posts ) ) {
-		$sticky_count = count( $sticky_posts );
-
-		// If the item count is greater than the sticky posts count,
-		// subtract the number of sticky posts from the item count.
-		// Otherwise, set as 1 so we don't pass 0 or -1.
-		$posts_per_page = ( $sticky_count < $posts_per_page )
-			? $posts_per_page - $sticky_count
-			: 1;
-
-		// Overwrite `posts_per_page` argument.
-		$args['posts_per_page'] = $posts_per_page;
-
-		// Add custom argument for `pre_get_posts` filter.
-		$args['lcp_sticky_posts'] = true;
-	} elseif ( 'post' === $post_type && ! $attributes['stickyPosts'] ) {
-		$args['ignore_sticky_posts'] = true;
-	}
-
 	// If this is a previous version of the block, overwrite
 	// the `customTaxonomy` attribute using the new format.
 	if ( $attributes['termID'] && ! is_array( $attributes['customTaxonomy'] ) ) {
@@ -181,14 +160,51 @@ function build_query_args( $attributes ) {
 				'terms'    => $taxonomy['terms'],
 			);
 
-			if ( $taxonomy['operator'] ) {
+			if ( isset( $taxonomy['operator'] ) ) {
 				$settings['operator'] = $taxonomy['operator'];
 			}
 
 			$tax_query[] = $settings;
 		}
 
-		$args['tax_query'] = $tax_query; // phpcs:ignore
+		$args['tax_query'] = $tax_query; // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_tax_query
+	}
+
+	// Add arguments to account for sticky posts if appropriate.
+	if ( 'post' === $post_type && $attributes['stickyPosts'] && is_array( $sticky_posts ) && 'date' === $attributes['orderBy'] ) {
+
+		// Copy the arguments that have been built out so far.
+		$stick_posts_query_args = $args;
+
+		// Add arguments to query for sticky posts which match
+		// all other criteria.
+		$stick_posts_query_args['ignore_sticky_posts'] = true;
+		$stick_posts_query_args['post__in']            = $sticky_posts;
+		$stick_posts_query_args['fields']              = 'ids';
+
+		$sticky_posts_query = new \WP_Query( $stick_posts_query_args );
+
+		$sticky_posts_in_params_count = $sticky_posts_query->found_posts;
+
+		// If posts were found, change the `posts_per_page` argument accordingly.
+		// Otherwise, ignore sticky posts so they show in their natural order.
+		if ( $sticky_posts_in_params_count ) {
+
+			// If the item count is greater than the sticky posts count,
+			// subtract the number of sticky posts from the item count.
+			// Otherwise, set as 1 so we don't pass 0 or -1.
+			$posts_per_page = ( $sticky_posts_in_params_count < $posts_per_page )
+				? $posts_per_page - $sticky_posts_in_params_count
+				: 1;
+
+			// Overwrite `posts_per_page` argument.
+			$args['posts_per_page'] = $posts_per_page;
+
+			// Add custom argument for leveraging in `pre_get_posts` filter.
+			$args['lcp_sticky_posts'] = true;
+		} else {
+			$args['ignore_sticky_posts'] = true;
+		}
 	}
 
 	return $args;
