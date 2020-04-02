@@ -172,7 +172,7 @@ function build_query_args( $attributes ) {
 	}
 
 	// Add arguments to account for sticky posts if appropriate.
-	if ( 'post' === $post_type && $attributes['stickyPosts'] && is_array( $sticky_posts ) && 'date' === $attributes['orderBy'] ) {
+	if ( 'post' === $post_type && $attributes['stickyPosts'] && is_array( $sticky_posts ) && ! empty( $sticky_posts ) && 'date' === $attributes['orderBy'] ) {
 
 		// Copy the arguments that have been built out so far.
 		$stick_posts_query_args = $args;
