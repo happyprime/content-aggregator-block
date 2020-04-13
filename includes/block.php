@@ -422,7 +422,7 @@ function register_route() {
  */
 function rest_response( $request ) {
 	$attributes = array(
-		'customPostType' => $request->get_param( 'post_type' ) ? $request->get_param( 'post_type' ) : 'post',
+		'customPostType' => $request->get_param( 'post_type' ) ? $request->get_param( 'post_type' ) : 'post,posts',
 		'taxonomies'     => $request->get_param( 'taxonomies' ) ? $request->get_param( 'taxonomies' ) : array(),
 		'taxRelation'    => $request->get_param( 'tax_relation' ) ? $request->get_param( 'tax_relation' ) : '',
 		'itemCount'      => $request->get_param( 'per_page' ) ? $request->get_param( 'per_page' ) : 3,
