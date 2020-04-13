@@ -13,7 +13,7 @@ add_action( 'enqueue_block_editor_assets', __NAMESPACE__ . '\enqueue_block_edito
 add_action( 'pre_get_posts', __NAMESPACE__ . '\filter_pre_get_posts' );
 add_action( 'rest_api_init', __NAMESPACE__ . '\register_route' );
 add_filter( 'block_editor_settings', __NAMESPACE__ . '\image_size_options', 10, 1 );
-add_filter( 'post_class', __NAMESPACE__ . '\filter_post_classe', 10, 3 );
+add_filter( 'post_class', __NAMESPACE__ . '\filter_post_classes', 10, 3 );
 
 /**
  * Provide a block version number for scripts.
@@ -484,7 +484,7 @@ function image_size_options( $editor_settings ) {
  * @param array $class   An array of additional class names added to the post.
  * @param int   $post_id The post ID.
  */
-function filter_post_classe( $classes, $class, $post_id ) {
+function filter_post_classes( $classes, $class, $post_id ) {
 	if ( in_array( 'lcpb-item', $class, true ) ) {
 		$format = ( has_post_format( $post_id ) ) ? get_post_format( $post_id ) : 'standard';
 
