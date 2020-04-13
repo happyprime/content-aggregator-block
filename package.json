@@ -5,7 +5,8 @@
   "author": "jeremyfelt, Happy Prime",
   "license": "GPL-2.0-or-later",
   "devDependencies": {
-    "@wordpress/scripts": "^3.1.0"
+    "@wordpress/scripts": "^7.1.3",
+    "classnames": "^2.2.6"
   },
   "scripts": {
     "build": "wp-scripts build",
@@ -17,8 +18,5 @@
     "start": "wp-scripts start",
     "test:e2e": "wp-scripts test-e2e",
     "test:unit": "wp-scripts test-unit-js"
-  },
-  "dependencies": {
-    "classnames": "^2.2.6"
   }
 }
