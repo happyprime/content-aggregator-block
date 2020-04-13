@@ -362,6 +362,16 @@ function render_block( $attributes ) {
  * Enqueue the script used in the editor for this block.
  */
 function enqueue_block_editor_assets() {
+	$post_types_w_sticky_support = array( 'post' );
+
+	foreach ( get_post_types() as $post_type ) {
+		if ( post_type_supports( $post_type, 'sticky' ) ) {
+			$post_types_w_sticky_support[] = $post_type;
+		}
+	}
+
+	$post_types = wp_json_encode( $post_types_w_sticky_support );
+
 	wp_enqueue_script(
 		'hp-latest-custom-post',
 		plugins_url( 'build/index.js', __DIR__ ),
@@ -372,6 +382,11 @@ function enqueue_block_editor_assets() {
 		),
 		block_version(),
 		true
+	);
+
+	wp_add_inline_script(
+		'hp-latest-custom-post',
+		"const lcpbStickyPostSupport = $post_types;",
 	);
 
 	wp_enqueue_style(

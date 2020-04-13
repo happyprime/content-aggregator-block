@@ -178,19 +178,21 @@ registerBlockType( 'happyprime/latest-custom-posts', {
 			}
 
 			if ( postID && '' !== customPostType && doRequest ) {
+				const postType = customPostType.split( ',' )[0];
+
 				setState( {
 					doingLatestPostsFetch: true,
 					triggerRefresh: false,
 				} );
 
 				let fetchData = {
-					post_type: customPostType.split( ',' )[0],
+					post_type: postType,
 					per_page: itemCount,
 					order: order,
 					orderby: orderBy,
 				};
 
-				if ( 'post,posts' === customPostType && stickyPosts ) {
+				if ( lcpbStickyPostSupport.includes( postType ) && stickyPosts ) {
 					fetchData['sticky_posts'] = true;
 				}
 
@@ -591,7 +593,7 @@ registerBlockType( 'happyprime/latest-custom-posts', {
 								} );
 							} }
 						/>
-						{ 'post,posts' === customPostType &&
+						{ lcpbStickyPostSupport.includes( customPostType.split( ',' )[0] ) &&
 							<ToggleControl
 								label={ __( 'Show sticky posts at the start of the set' ) }
 								checked={ stickyPosts }
