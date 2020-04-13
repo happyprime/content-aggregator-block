@@ -121,6 +121,8 @@ function build_query_args( $attributes ) {
 		'posts_per_page' => $posts_per_page,
 		'order'          => $attributes['order'],
 		'orderby'        => $attributes['orderBy'],
+		'post_status'    => 'publish',
+		'fields'         => 'ids',
 	);
 
 	// If this is a previous version of the block, overwrite
@@ -172,8 +174,7 @@ function build_query_args( $attributes ) {
 	}
 
 	// Add arguments to account for sticky posts if appropriate.
-	if ( 'post' === $post_type && $attributes['stickyPosts'] && is_array( $sticky_posts ) && ! empty( $sticky_posts ) && 'date' === $attributes['orderBy'] ) {
-
+	if ( $attributes['stickyPosts'] && is_array( $sticky_posts ) && ! empty( $sticky_posts ) && 'date' === $attributes['orderBy'] ) {
 		// Copy the arguments that have been built out so far.
 		$stick_posts_query_args = $args;
 
@@ -181,28 +182,46 @@ function build_query_args( $attributes ) {
 		// all other criteria.
 		$stick_posts_query_args['ignore_sticky_posts'] = true;
 		$stick_posts_query_args['post__in']            = $sticky_posts;
-		$stick_posts_query_args['fields']              = 'ids';
 
 		$sticky_posts_query = new \WP_Query( $stick_posts_query_args );
 
 		$sticky_posts_in_params_count = $sticky_posts_query->found_posts;
 
-		// If posts were found, change the `posts_per_page` argument accordingly.
+		// If posts were found, update query arguments accordingly.
 		// Otherwise, ignore sticky posts so they show in their natural order.
 		if ( $sticky_posts_in_params_count ) {
+			// Initialize an empty array for capturing post IDs.
+			$sticky_post_ids = array();
+
+			// Add IDs of sticky posts to the `$sticky_post_ids` array.
+			while ( $sticky_posts_query->have_posts() ) {
+				$sticky_posts_query->the_post();
+				$sticky_post_ids[] = get_the_ID();
+			}
+
+			wp_reset_postdata();
 
 			// If the item count is greater than the sticky posts count,
 			// subtract the number of sticky posts from the item count.
 			// Otherwise, set as 1 so we don't pass 0 or -1.
-			$posts_per_page = ( $sticky_posts_in_params_count < $posts_per_page )
-				? $posts_per_page - $sticky_posts_in_params_count
-				: 1;
+			if ( $sticky_posts_in_params_count < $posts_per_page ) {
+				$args['posts_per_page']      = $posts_per_page - $sticky_posts_in_params_count;
+				$args['ignore_sticky_posts'] = true;
+				$posts_query                 = get_posts( $args );
+				$post_ids                    = array_merge( $sticky_post_ids, $posts_query );
+			} else {
+				$post_ids = array_slice( $sticky_post_ids, 0, $posts_per_page );
+			}
 
-			// Overwrite `posts_per_page` argument.
-			$args['posts_per_page'] = $posts_per_page;
-
-			// Add custom argument for leveraging in `pre_get_posts` filter.
-			$args['lcp_sticky_posts'] = true;
+			// Completely overwrite arguments.
+			$args = array(
+				'ignore_sticky_posts' => true,
+				'post_type'           => $post_type,
+				'post__in'            => $post_ids,
+				'orderby'             => 'post__in',
+				'fields'              => 'ids',
+				'no_found_rows'       => true,
+			);
 		} else {
 			$args['ignore_sticky_posts'] = true;
 		}
