@@ -8,12 +8,10 @@
 
 namespace HappyPrime\LatestCustomPosts\Block;
 
-add_action( 'init', __NAMESPACE__ . '\register_block' );
+add_action( 'init', __NAMESPACE__ . '\\register_block' );
 add_action( 'enqueue_block_editor_assets', __NAMESPACE__ . '\enqueue_block_editor_assets' );
-add_action( 'pre_get_posts', __NAMESPACE__ . '\filter_pre_get_posts' );
-add_action( 'rest_api_init', __NAMESPACE__ . '\register_route' );
-add_filter( 'block_editor_settings', __NAMESPACE__ . '\image_size_options', 10, 1 );
-add_filter( 'post_class', __NAMESPACE__ . '\filter_post_classes', 10, 3 );
+add_action( 'rest_api_init', __NAMESPACE__ . '\\register_route' );
+add_filter( 'block_editor_settings', __NAMESPACE__ . '\\image_size_options', 10, 1 );
 
 /**
  * Provide a block version number for scripts.
@@ -88,10 +86,6 @@ function register_block() {
 					'type'    => 'string',
 					'default' => 'thumbnail',
 				),
-				'stickyPosts'        => array(
-					'type'    => 'boolean',
-					'default' => true,
-				),
 				// Deprecated.
 				'customTaxonomy'     => array(),
 				'termID'             => array(
@@ -99,7 +93,7 @@ function register_block() {
 					'default' => 0,
 				),
 			),
-			'render_callback' => __NAMESPACE__ . '\render_block',
+			'render_callback' => __NAMESPACE__ . '\\render_block',
 		)
 	);
 }
@@ -112,17 +106,13 @@ function register_block() {
  * @return array The built query arguments.
  */
 function build_query_args( $attributes ) {
-	$post_type      = explode( ',', $attributes['customPostType'] )[0];
-	$posts_per_page = absint( $attributes['itemCount'] );
-	$sticky_posts   = get_option( 'sticky_posts' );
+	$post_type = explode( ',', $attributes['customPostType'] );
 
 	$args = array(
-		'post_type'      => $post_type,
-		'posts_per_page' => $posts_per_page,
+		'post_type'      => $post_type[0],
+		'posts_per_page' => absint( $attributes['itemCount'] ),
 		'order'          => $attributes['order'],
 		'orderby'        => $attributes['orderBy'],
-		'post_status'    => 'publish',
-		'fields'         => 'ids',
 	);
 
 	// If this is a previous version of the block, overwrite
@@ -163,83 +153,17 @@ function build_query_args( $attributes ) {
 				'terms'    => $taxonomy['terms'],
 			);
 
-			if ( isset( $taxonomy['operator'] ) ) {
+			if ( $taxonomy['operator'] ) {
 				$settings['operator'] = $taxonomy['operator'];
 			}
 
 			$tax_query[] = $settings;
 		}
 
-		$args['tax_query'] = $tax_query; // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_tax_query
-	}
-
-	// Add arguments to account for sticky posts if appropriate.
-	if ( $attributes['stickyPosts'] && is_array( $sticky_posts ) && ! empty( $sticky_posts ) && 'date' === $attributes['orderBy'] ) {
-		// Copy the arguments that have been built out so far.
-		$stick_posts_query_args = $args;
-
-		// Add arguments to query for sticky posts which match
-		// all other criteria.
-		$stick_posts_query_args['ignore_sticky_posts'] = true;
-		$stick_posts_query_args['post__in']            = $sticky_posts;
-
-		$sticky_posts_query = new \WP_Query( $stick_posts_query_args );
-
-		$sticky_posts_in_params_count = $sticky_posts_query->found_posts;
-
-		// If posts were found, update query arguments accordingly.
-		// Otherwise, ignore sticky posts so they show in their natural order.
-		if ( $sticky_posts_in_params_count ) {
-			// Initialize an empty array for capturing post IDs.
-			$sticky_post_ids = array();
-
-			// Add IDs of sticky posts to the `$sticky_post_ids` array.
-			while ( $sticky_posts_query->have_posts() ) {
-				$sticky_posts_query->the_post();
-				$sticky_post_ids[] = get_the_ID();
-			}
-
-			wp_reset_postdata();
-
-			// If the item count is greater than the sticky posts count,
-			// subtract the number of sticky posts from the item count.
-			// Otherwise, set as 1 so we don't pass 0 or -1.
-			if ( $sticky_posts_in_params_count < $posts_per_page ) {
-				$args['posts_per_page']      = $posts_per_page - $sticky_posts_in_params_count;
-				$args['ignore_sticky_posts'] = true;
-				$posts_query                 = get_posts( $args );
-				$post_ids                    = array_merge( $sticky_post_ids, $posts_query );
-			} else {
-				$post_ids = array_slice( $sticky_post_ids, 0, $posts_per_page );
-			}
-
-			// Completely overwrite arguments.
-			$args = array(
-				'ignore_sticky_posts' => true,
-				'post_type'           => $post_type,
-				'post__in'            => $post_ids,
-				'orderby'             => 'post__in',
-				'fields'              => 'ids',
-				'no_found_rows'       => true,
-			);
-		} else {
-			$args['ignore_sticky_posts'] = true;
-		}
+		$args['tax_query'] = $tax_query; // phpcs:ignore
 	}
 
 	return $args;
-}
-
-/**
- * Set the `is_home` property to `true` when the `lcp_sticky_posts` argument
- * is set so that sticky posts are returned in our custom endpoint.
- *
- * @param WP_Query $query The WP_Query instance.
- */
-function filter_pre_get_posts( $query ) {
-	if ( $query->get( 'lcp_sticky_posts' ) ) {
-		$query->is_home = true;
-	}
 }
 
 /**
@@ -267,11 +191,10 @@ function render_block( $attributes ) {
 		'excerptLength'      => 55,
 		'displayImage'       => false,
 		'imageSize'          => 'thumbnail',
-		'stickyPosts'        => true,
 	);
 	$attributes = wp_parse_args( $attributes, $defaults );
 	$args       = build_query_args( $attributes );
-	$query      = new \WP_Query( $args );
+	$posts      = get_posts( $args );
 
 	$container_class = 'wp-block-latest-posts wp-block-latest-posts__list happyprime-latest-custom-posts';
 
@@ -295,55 +218,8 @@ function render_block( $attributes ) {
 		$container_class .= ' ' . $attributes['className'];
 	}
 
-	if ( $query->have_posts() ) {
-		ob_start();
-		?>
-		<ul class="<?php echo esc_attr( $container_class ); ?>">
-			<?php
-			while ( $query->have_posts() ) {
-				$query->the_post();
-				$post = get_post( get_the_ID() );
-				?>
-				<li <?php post_class( 'lcpb-item' ); ?>>
-					<a href="<?php the_permalink(); ?>"><?php the_title(); ?></a>
-					<?php
-					if ( isset( $attributes['displayPostDate'] ) && $attributes['displayPostDate'] ) {
-						?>
-						<time datetime="<?php echo esc_attr( get_the_date( 'c' ) ); ?>" class="wp-block-latest-posts__post-date"><?php echo esc_html( get_the_date( '' ) ); ?></time>
-						<?php
-					}
-					if ( isset( $attributes['displayImage'] ) && $attributes['displayImage'] && has_post_thumbnail() ) {
-						$image_id = get_post_thumbnail_id();
-						echo wp_get_attachment_image( $image_id, $attributes['imageSize'], false );
-					}
-					if ( isset( $attributes['displayPostContent'] ) && $attributes['displayPostContent'] && isset( $attributes['postContent'] ) ) {
-						if ( 'excerpt' === $attributes['postContent'] ) {
-							$post_excerpt    = ( $post->post_excerpt ) ? $post->post_excerpt : $post->post_content;
-							$trimmed_excerpt = esc_html( wp_trim_words( $post_excerpt, $attributes['excerptLength'], '&hellip;' ) );
-							?>
-							<div class="wp-block-latest-posts__post-excerpt">
-								<?php echo wp_kses_post( $trimmed_excerpt ); ?>
-							</div>
-							<?php
-						}
-						if ( 'full_post' === $attributes['postContent'] ) {
-							?>
-							<div class="wp-block-latest-posts__post-full-content">
-								<?php echo wp_kses_post( html_entity_decode( $post->post_content, ENT_QUOTES, get_option( 'blog_charset' ) ) ); ?>
-							</div>
-							<?php
-						}
-					}
-					?>
-				</li>
-				<?php
-			}
-			?>
-		</ul>
-		<?php
-		$html = ob_get_clean();
-	} else {
-		// Render "No current items" message if no posts are available.
+	// Render "No current items" message if no posts are available.
+	if ( empty( $posts ) ) {
 		$container_class .= ' happyprime-latest-custom-posts_no-posts';
 
 		ob_start();
@@ -353,7 +229,57 @@ function render_block( $attributes ) {
 		</ul>
 		<?php
 		$html = ob_get_clean();
+
+		return $html;
 	}
+
+	ob_start();
+
+	?>
+	<ul class="<?php echo esc_attr( $container_class ); ?>">
+		<?php
+
+		foreach ( $posts as $post ) {
+			?>
+			<li>
+				<a href="<?php echo esc_url( get_permalink( $post ) ); ?>"><?php echo get_the_title( $post ); // phpcs:ignore ?></a>
+				<?php
+				if ( isset( $attributes['displayPostDate'] ) && $attributes['displayPostDate'] ) {
+					?>
+					<time datetime="<?php echo esc_attr( get_the_date( 'c', $post ) ); ?>" class="wp-block-latest-posts__post-date"><?php echo esc_html( get_the_date( '', $post ) ); ?></time>
+					<?php
+				}
+				if ( isset( $attributes['displayImage'] ) && $attributes['displayImage'] && has_post_thumbnail( $post ) ) {
+					$image_id = get_post_thumbnail_id( $post );
+					echo wp_get_attachment_image( $image_id, $attributes['imageSize'], false );
+				}
+				if ( isset( $attributes['displayPostContent'] ) && $attributes['displayPostContent'] && isset( $attributes['postContent'] ) ) {
+					if ( 'excerpt' === $attributes['postContent'] ) {
+						$post_excerpt    = ( $post->post_excerpt ) ? $post->post_excerpt : $post->post_content;
+						$trimmed_excerpt = esc_html( wp_trim_words( $post_excerpt, $attributes['excerptLength'], '&hellip;' ) );
+						?>
+						<div class="wp-block-latest-posts__post-excerpt">
+							<?php echo wp_kses_post( $trimmed_excerpt ); ?>
+						</div>
+						<?php
+					}
+					if ( 'full_post' === $attributes['postContent'] ) {
+						?>
+						<div class="wp-block-latest-posts__post-full-content">
+							<?php echo wp_kses_post( html_entity_decode( $post->post_content, ENT_QUOTES, get_option( 'blog_charset' ) ) ); ?>
+						</div>
+						<?php
+					}
+				}
+				?>
+			</li>
+			<?php
+		}
+
+		?>
+	</ul>
+	<?php
+	$html = ob_get_clean();
 
 	return $html;
 }
@@ -362,16 +288,6 @@ function render_block( $attributes ) {
  * Enqueue the script used in the editor for this block.
  */
 function enqueue_block_editor_assets() {
-	$post_types_w_sticky_support = array( 'post' );
-
-	foreach ( get_post_types() as $post_type ) {
-		if ( post_type_supports( $post_type, 'sticky' ) ) {
-			$post_types_w_sticky_support[] = $post_type;
-		}
-	}
-
-	$post_types = wp_json_encode( $post_types_w_sticky_support );
-
 	wp_enqueue_script(
 		'hp-latest-custom-post',
 		plugins_url( 'build/index.js', __DIR__ ),
@@ -382,11 +298,6 @@ function enqueue_block_editor_assets() {
 		),
 		block_version(),
 		true
-	);
-
-	wp_add_inline_script(
-		'hp-latest-custom-post',
-		"const lcpbStickyPostSupport = $post_types;",
 	);
 
 	wp_enqueue_style(
@@ -428,7 +339,6 @@ function rest_response( $request ) {
 		'itemCount'      => $request->get_param( 'per_page' ) ? $request->get_param( 'per_page' ) : 3,
 		'order'          => $request->get_param( 'order' ) ? $request->get_param( 'order' ) : 'desc',
 		'orderBy'        => $request->get_param( 'order_by' ) ? $request->get_param( 'order_by' ) : 'date',
-		'stickyPosts'    => $request->get_param( 'sticky_posts' ) ? true : false,
 	);
 	$args       = build_query_args( $attributes );
 	$query      = new \WP_Query( $args );
@@ -490,35 +400,4 @@ function image_size_options( $editor_settings ) {
 	$editor_settings['lcpImageSizeOptions'] = $image_options;
 
 	return $editor_settings;
-}
-
-/**
- * Filters classes for posts that have the added `lcpb-item` class.
- *
- * @param array $classes An array of post class names.
- * @param array $class   An array of additional class names added to the post.
- * @param int   $post_id The post ID.
- */
-function filter_post_classes( $classes, $class, $post_id ) {
-	if ( in_array( 'lcpb-item', $class, true ) ) {
-		$format = ( has_post_format( $post_id ) ) ? get_post_format( $post_id ) : 'standard';
-
-		// Filter out the `lcpb-item` flag and a handful of default classes.
-		$classes = array_diff(
-			$classes,
-			array(
-				'lcpb-item',
-				'hentry',
-				'post-' . $post_id,
-				get_post_type( $post_id ),
-				'status-' . get_post_status( $post_id ),
-				'format-' . $format,
-			)
-		);
-
-		// Prefix the remaining classes with `lcpb-`.
-		$classes = substr_replace( $classes, 'lcpb-', 0, 0 );
-	}
-
-	return $classes;
 }
