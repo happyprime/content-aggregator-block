@@ -112,7 +112,6 @@ registerBlockType( 'happyprime/latest-custom-posts', {
 				taxRelation,
 				order,
 				orderBy,
-				stickyPosts,
 			} = attributes;
 
 			const taxonomies = ( 0 < attributes.taxonomies.length )
@@ -178,23 +177,17 @@ registerBlockType( 'happyprime/latest-custom-posts', {
 			}
 
 			if ( postID && '' !== customPostType && doRequest ) {
-				const postType = customPostType.split( ',' )[0];
-
 				setState( {
 					doingLatestPostsFetch: true,
 					triggerRefresh: false,
 				} );
 
 				let fetchData = {
-					post_type: postType,
+					post_type: customPostType.split( ',' )[0],
 					per_page: itemCount,
 					order: order,
 					orderby: orderBy,
 				};
-
-				if ( lcpbStickyPostSupport.includes( postType ) && stickyPosts ) {
-					fetchData['sticky_posts'] = true;
-				}
 
 				if ( taxonomies ) {
 					fetchData['taxonomies'] = taxonomies;
@@ -248,7 +241,6 @@ registerBlockType( 'happyprime/latest-custom-posts', {
 			excerptLength,
 			displayImage,
 			imageSize,
-			stickyPosts,
 		} = attributes;
 
 		const taxonomies = ( 0 < attributes.taxonomies.length )
@@ -593,19 +585,6 @@ registerBlockType( 'happyprime/latest-custom-posts', {
 								} );
 							} }
 						/>
-						{ lcpbStickyPostSupport.includes( customPostType.split( ',' )[0] ) &&
-							<ToggleControl
-								label={ __( 'Show sticky posts at the start of the set' ) }
-								checked={ stickyPosts }
-								onChange={ ( value ) => {
-									setAttributes( { stickyPosts: value } );
-									setState( {
-										triggerRefresh: true,
-										latestPosts: []
-									} );
-								} }
-							/>
-						}
 						<div className="happyprime-block-latest-custom-posts_taxonomy">
 							{ ( taxonomies && 1 < taxonomies.length ) && (
 								<p>{ __( 'Taxonomy Settings' ) }</p>
