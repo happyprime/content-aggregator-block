@@ -10,7 +10,6 @@ namespace HappyPrime\LatestCustomPosts\Block;
 
 add_action( 'init', __NAMESPACE__ . '\register_block' );
 add_action( 'enqueue_block_editor_assets', __NAMESPACE__ . '\enqueue_block_editor_assets' );
-add_action( 'pre_get_posts', __NAMESPACE__ . '\filter_pre_get_posts' );
 add_action( 'rest_api_init', __NAMESPACE__ . '\register_route' );
 add_filter( 'block_editor_settings', __NAMESPACE__ . '\image_size_options', 10, 1 );
 add_filter( 'post_class', __NAMESPACE__ . '\filter_post_classes', 10, 3 );
@@ -232,18 +231,6 @@ function build_query_args( $attributes ) {
 	}
 
 	return $args;
-}
-
-/**
- * Set the `is_home` property to `true` when the `lcp_sticky_posts` argument
- * is set so that sticky posts are returned in our custom endpoint.
- *
- * @param WP_Query $query The WP_Query instance.
- */
-function filter_pre_get_posts( $query ) {
-	if ( $query->get( 'lcp_sticky_posts' ) ) {
-		$query->is_home = true;
-	}
 }
 
 /**
