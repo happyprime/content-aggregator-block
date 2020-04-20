@@ -386,7 +386,7 @@ function enqueue_block_editor_assets() {
 
 	wp_add_inline_script(
 		'hp-latest-custom-post',
-		"const lcpbStickyPostSupport = $post_types;",
+		"const lcpbStickyPostSupport = $post_types;"
 	);
 
 	wp_enqueue_style(
