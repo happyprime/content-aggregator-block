@@ -201,15 +201,19 @@ function build_query_args( $attributes ) {
 
 			wp_reset_postdata();
 
-			// If the item count is greater than the sticky posts count,
-			// subtract the number of sticky posts from the item count.
-			// Otherwise, set as 1 so we don't pass 0 or -1.
 			if ( $sticky_posts_in_params_count < $posts_per_page ) {
+				// If the item count is greater than the sticky posts count,
+				// add arguments to query for non sticky posts which meet the criteria.
 				$args['posts_per_page']      = $posts_per_page - $sticky_posts_in_params_count;
 				$args['ignore_sticky_posts'] = true;
-				$posts_query                 = get_posts( $args );
-				$post_ids                    = array_merge( $sticky_post_ids, $posts_query );
+				$args['post__not_in']        = $sticky_post_ids;
+
+				// Run the query and add the found post IDs to the array.
+				$posts_query = get_posts( $args );
+				$post_ids    = array_merge( $sticky_post_ids, $posts_query );
 			} else {
+				// If the item count is less than the sticky post count,
+				// reduce the number of IDs in the array accordingly.
 				$post_ids = array_slice( $sticky_post_ids, 0, $posts_per_page );
 			}
 
