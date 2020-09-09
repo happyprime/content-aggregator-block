@@ -10,7 +10,7 @@
  * Plugin URI:  https://github.com/happyprime/latest-custom-posts/
  * Description: Display the latest posts for a specified post type, taxonomy, and term.
  * Version:     0.0.1
- * Author:      Jeremy Felt, Happy Prime
+ * Author:      Happy Prime
  * Author URI:  https://happyprime.co/
  * License:     GPL2
  * License URI: https://www.gnu.org/licenses/gpl-2.0.html
