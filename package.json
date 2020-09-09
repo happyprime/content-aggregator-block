@@ -2,10 +2,10 @@
   "name": "latest-custom-posts",
   "version": "0.0.1",
   "description": "Display the latest posts for a specified post type, taxonomy, and term.",
-  "author": "jeremyfelt, Happy Prime",
+  "author": "Happy Prime",
   "license": "GPL-2.0-or-later",
   "devDependencies": {
-    "@wordpress/scripts": "^7.1.3",
+    "@wordpress/scripts": "^12.2.0",
     "classnames": "^2.2.6"
   },
   "scripts": {
