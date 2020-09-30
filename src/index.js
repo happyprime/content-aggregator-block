@@ -598,7 +598,7 @@ registerBlockType( 'happyprime/latest-custom-posts', {
 								} );
 							} }
 						/>
-						{ lcpbStickyPostSupport.includes( customPostType.split( ',' )[0] ) &&
+						{ lcpbStickyPostSupport.includes( customPostType.split( ',' )[0] ) && 'date' === orderBy &&
 							<ToggleControl
 								label={ __( 'Show sticky posts at the start of the set' ) }
 								checked={ stickyPosts }
