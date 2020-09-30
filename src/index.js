@@ -542,6 +542,11 @@ registerBlockType( 'happyprime/latest-custom-posts', {
 									label: __( 'Z → A' ),
 									value: 'title/desc',
 								},
+								{
+									/* translators: label for displaying random posts */
+									label: __( 'Random' ),
+									value: 'rand/desc',
+								},
 							] }
 							onChange={ ( value ) => {
 								const [ newOrderBy, newOrder ] = value.split( '/' );
@@ -593,7 +598,7 @@ registerBlockType( 'happyprime/latest-custom-posts', {
 								} );
 							} }
 						/>
-						{ lcpbStickyPostSupport.includes( customPostType.split( ',' )[0] ) &&
+						{ lcpbStickyPostSupport.includes( customPostType.split( ',' )[0] ) && 'date' === orderBy &&
 							<ToggleControl
 								label={ __( 'Show sticky posts at the start of the set' ) }
 								checked={ stickyPosts }
