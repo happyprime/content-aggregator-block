@@ -542,6 +542,11 @@ registerBlockType( 'happyprime/latest-custom-posts', {
 									label: __( 'Z → A' ),
 									value: 'title/desc',
 								},
+								{
+									/* translators: label for displaying random posts */
+									label: __( 'Random' ),
+									value: 'rand/desc',
+								},
 							] }
 							onChange={ ( value ) => {
 								const [ newOrderBy, newOrder ] = value.split( '/' );
