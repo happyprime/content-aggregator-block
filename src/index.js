@@ -62,9 +62,9 @@ const TAXONOMY_SETTING = {
 };
 
 // Register the block.
-registerBlockType( 'happyprime/latest-custom-posts', {
+registerBlockType( 'happyprime/content-aggregator', {
 
-	title: __( 'Latest Custom Posts' ),
+	title: __( 'Content Aggregator' ),
 
 	description: __( 'A list of posts for a custom post type and/or taxonomy.' ),
 
@@ -423,10 +423,10 @@ registerBlockType( 'happyprime/latest-custom-posts', {
 
 		const taxonomySetting = ( taxonomy, index ) => {
 			return (
-				<div className="happyprime-block-latest-custom-posts_taxonomy-setting-wrapper">
+				<div className="happyprime-block-content-aggregator-block_taxonomy-setting-wrapper">
 					{ 0 < index && (
 						<IconButton
-							className="happyprime-block-latest-custom-posts_remove-taxonomy-setting"
+							className="happyprime-block-content-aggregator-block_remove-taxonomy-setting"
 							icon="dismiss"
 							label={ __( 'Remove taxonomy setting' ) }
 							onClick={ () => {
@@ -445,7 +445,7 @@ registerBlockType( 'happyprime/latest-custom-posts', {
 							} }
 						/>
 					) }
-					<div className="happyprime-block-latest-custom-posts_taxonomy-setting">
+					<div className="happyprime-block-content-aggregator-block_taxonomy-setting">
 						<SelectControl
 							label={ __( 'Taxonomy' ) }
 							value={ ( taxonomy.slug ) ? taxonomy.slug : '' }
@@ -542,6 +542,11 @@ registerBlockType( 'happyprime/latest-custom-posts', {
 									label: __( 'Z → A' ),
 									value: 'title/desc',
 								},
+								{
+									/* translators: label for displaying random posts */
+									label: __( 'Random' ),
+									value: 'rand/desc',
+								},
 							] }
 							onChange={ ( value ) => {
 								const [ newOrderBy, newOrder ] = value.split( '/' );
@@ -593,7 +598,7 @@ registerBlockType( 'happyprime/latest-custom-posts', {
 								} );
 							} }
 						/>
-						{ lcpbStickyPostSupport.includes( customPostType.split( ',' )[0] ) &&
+						{ lcpbStickyPostSupport.includes( customPostType.split( ',' )[0] ) && 'date' === orderBy &&
 							<ToggleControl
 								label={ __( 'Show sticky posts at the start of the set' ) }
 								checked={ stickyPosts }
@@ -606,11 +611,11 @@ registerBlockType( 'happyprime/latest-custom-posts', {
 								} }
 							/>
 						}
-						<div className="happyprime-block-latest-custom-posts_taxonomy">
+						<div className="happyprime-block-content-aggregator-block_taxonomy">
 							{ ( taxonomies && 1 < taxonomies.length ) && (
 								<p>{ __( 'Taxonomy Settings' ) }</p>
 							) }
-							<div className="happyprime-block-latest-custom-posts_taxonomy-settings">
+							<div className="happyprime-block-content-aggregator-block_taxonomy-settings">
 								{ ( taxonomies && 0 < taxonomies.length ) ? (
 									taxonomies.map( ( taxonomy, index ) => taxonomySetting( taxonomy, index ) )
 								) : (
@@ -723,7 +728,7 @@ registerBlockType( 'happyprime/latest-custom-posts', {
 						{ displayPosts && displayPosts.map( post => displayListItem( post ) ) }
 					</ul>
 				) : (
-					<p className="happyprime-block-latest-custom-posts_error">{
+					<p className="happyprime-block-content-aggregator-block_error">{
 						( errorMessage )
 							? errorMessage
 							: ( !customPostType )

@@ -1,11 +1,11 @@
 {
-  "name": "latest-custom-posts",
-  "version": "0.0.1",
+  "name": "content-aggregator-block",
+  "version": "0.3.0",
   "description": "Display the latest posts for a specified post type, taxonomy, and term.",
   "author": "Happy Prime",
   "license": "GPL-2.0-or-later",
   "devDependencies": {
-    "@wordpress/scripts": "^12.2.0",
+    "@wordpress/scripts": "^13.0.3",
     "classnames": "^2.2.6"
   },
   "scripts": {

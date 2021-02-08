@@ -1,12 +1,12 @@
 <?php
 /**
  * Handle the server side registration and rendering of the
- * Latest Custom Posts block.
+ * Content Aggregator block.
  *
- * @package latest-custom-posts
+ * @package content-aggregator-block
  */
 
-namespace HappyPrime\LatestCustomPosts\Block;
+namespace HappyPrime\ContentAggregator\Block;
 
 add_action( 'init', __NAMESPACE__ . '\register_block' );
 add_action( 'enqueue_block_editor_assets', __NAMESPACE__ . '\enqueue_block_editor_assets' );
@@ -20,15 +20,15 @@ add_filter( 'post_class', __NAMESPACE__ . '\filter_post_classes', 10, 3 );
  * @return string The version number.
  */
 function block_version() {
-	return '0.0.1';
+	return '0.3.0';
 }
 
 /**
- * Registers the `happyprime/latest-custom-posts` block on server.
+ * Registers the `happyprime/content-aggregator` block on server.
  */
 function register_block() {
 	register_block_type(
-		'happyprime/latest-custom-posts',
+		'happyprime/content-aggregator',
 		array(
 			'attributes'      => array(
 				'customPostType'     => array(
@@ -264,7 +264,7 @@ function render_block( $attributes ) {
 	$args       = build_query_args( $attributes );
 	$query      = new \WP_Query( $args );
 
-	$container_class = 'wp-block-latest-posts wp-block-latest-posts__list happyprime-latest-custom-posts';
+	$container_class = 'wp-block-latest-posts wp-block-latest-posts__list happyprime-content-aggregator-block';
 
 	if ( isset( $attributes['align'] ) ) {
 		$container_class .= ' align' . $attributes['align'];
@@ -335,7 +335,7 @@ function render_block( $attributes ) {
 		$html = ob_get_clean();
 	} else {
 		// Render "No current items" message if no posts are available.
-		$container_class .= ' happyprime-latest-custom-posts_no-posts';
+		$container_class .= ' happyprime-content-aggregator-block_no-posts';
 
 		ob_start();
 		?>
@@ -381,7 +381,7 @@ function enqueue_block_editor_assets() {
 	);
 
 	wp_enqueue_style(
-		'hp-latest-custom-posts',
+		'hp-content-aggregator-block',
 		plugins_url( 'css/editor.css', __DIR__ ),
 		array(
 			'wp-edit-blocks',
