@@ -1,5 +1,5 @@
 {
-  "name": "latest-custom-posts",
+  "name": "content-aggregator-block",
   "version": "0.2.0",
   "description": "Display the latest posts for a specified post type, taxonomy, and term.",
   "author": "Happy Prime",

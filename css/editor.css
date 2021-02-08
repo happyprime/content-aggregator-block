@@ -1,17 +1,17 @@
-.happyprime-block-latest-custom-posts_taxonomy {
+.happyprime-block-content-aggregator-block_taxonomy {
 	margin-bottom: 24px;
 }
 
-.happyprime-block-latest-custom-posts_taxonomy-setting-wrapper:not(:only-child) {
+.happyprime-block-content-aggregator-block_taxonomy-setting-wrapper:not(:only-child) {
 	border-bottom: 1px solid #e2e4e7;
 	position: relative;
 }
 
-.happyprime-block-latest-custom-posts_taxonomy-setting-wrapper:not(:only-child) .components-base-control {
+.happyprime-block-content-aggregator-block_taxonomy-setting-wrapper:not(:only-child) .components-base-control {
 	margin-bottom: 0;
 }
 
-.happyprime-block-latest-custom-posts_remove-taxonomy-setting {
+.happyprime-block-content-aggregator-block_remove-taxonomy-setting {
 	border-radius: 50%;
 	left: 6px;
 	padding: 0;
@@ -19,22 +19,22 @@
 	top: 15px;
 }
 
-.happyprime-block-latest-custom-posts_taxonomy-setting-wrapper:not(:only-child) .happyprime-block-latest-custom-posts_taxonomy-setting {
+.happyprime-block-content-aggregator-block_taxonomy-setting-wrapper:not(:only-child) .happyprime-block-content-aggregator-block_taxonomy-setting {
 	padding: 0px 16px 12px 32px;
 }
 
-.happyprime-block-latest-custom-posts_taxonomy-setting-wrapper:not(:first-of-type) .happyprime-block-latest-custom-posts_taxonomy-setting {
+.happyprime-block-content-aggregator-block_taxonomy-setting-wrapper:not(:first-of-type) .happyprime-block-content-aggregator-block_taxonomy-setting {
 	padding-top: 16px;
 }
 
-.happyprime-block-latest-custom-posts_taxonomy > .components-base-control.components-radio-control {
+.happyprime-block-content-aggregator-block_taxonomy > .components-base-control.components-radio-control {
 	padding: 16px 0 0 32px;
 }
 
-.happyprime-block-latest-custom-posts_taxonomy-setting-wrapper button:hover ~ div {
+.happyprime-block-content-aggregator-block_taxonomy-setting-wrapper button:hover ~ div {
 	background: #e2e4e7;
 }
 
-.happyprime-block-latest-custom-posts_error .components-spinner {
+.happyprime-block-content-aggregator-block_error .components-spinner {
 	float: none;
 }

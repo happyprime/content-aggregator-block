@@ -47,8 +47,8 @@ jobs:
         SLACK_ICON: https://github.com/happyprime.png
         SLACK_CHANNE: river-deploys
         SLACK_USERNAME: Happy Prime
-        SLACK_TITLE: Latest Custom Posts plugin deployment
-        SLACK_MESSAGE: 'The Latest Custom Posts plugin has been deployed to Cleantech and Fisheries :rocket:'
+        SLACK_TITLE: Content Aggregator Block plugin deployment
+        SLACK_MESSAGE: 'The Content Aggregator Block plugin has been deployed to Cleantech and Fisheries :rocket:'
     - name: Send error notification to Happy Prime Slack
       if: failure()
       uses: rtCamp/action-slack-notify@v2.0.0
@@ -58,5 +58,5 @@ jobs:
         SLACK_COLOR: '#ff0000'
         SLACK_CHANNE: river-deploys
         SLACK_USERNAME: Happy Prime
-        SLACK_TITLE: Latest Custom Posts plugin deployment
+        SLACK_TITLE: Content Aggregator Block plugin deployment
         SLACK_MESSAGE: 'Deployment was not successful. :red_circle:'

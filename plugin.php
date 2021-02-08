@@ -2,12 +2,12 @@
 /**
  * The main plugin file.
  *
- * @package latest-custom-posts
+ * @package content-aggregator-block
  */
 
 /**
- * Plugin Name: Latest Custom Posts
- * Plugin URI:  https://github.com/happyprime/latest-custom-posts/
+ * Plugin Name: Content Aggregator Block
+ * Plugin URI:  https://github.com/happyprime/content-aggregator-block/
  * Description: Display the latest posts for a specified post type, taxonomy, and term.
  * Version:     0.0.2
  * Author:      Happy Prime
