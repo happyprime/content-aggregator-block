@@ -20,7 +20,7 @@ add_filter( 'post_class', __NAMESPACE__ . '\filter_post_classes', 10, 3 );
  * @return string The version number.
  */
 function block_version() {
-	return '0.0.1';
+	return '0.3.0';
 }
 
 /**

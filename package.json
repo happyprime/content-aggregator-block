@@ -1,6 +1,6 @@
 {
   "name": "content-aggregator-block",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Display the latest posts for a specified post type, taxonomy, and term.",
   "author": "Happy Prime",
   "license": "GPL-2.0-or-later",
