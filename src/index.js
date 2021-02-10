@@ -192,7 +192,7 @@ registerBlockType( 'happyprime/content-aggregator', {
 					orderby: orderBy,
 				};
 
-				if ( lcpbStickyPostSupport.includes( postType ) && stickyPosts ) {
+				if ( cabStickyPostSupport.includes( postType ) && stickyPosts ) {
 					fetchData['sticky_posts'] = true;
 				}
 
@@ -205,7 +205,7 @@ registerBlockType( 'happyprime/content-aggregator', {
 				}
 
 				apiFetch( {
-					path: addQueryArgs( '/lcp/v1/posts/', fetchData ),
+					path: addQueryArgs( '/content-aggregator-block/v1/posts/', fetchData ),
 				} ).then( data => {
 					setState( {
 						latestPosts: data,
@@ -598,7 +598,7 @@ registerBlockType( 'happyprime/content-aggregator', {
 								} );
 							} }
 						/>
-						{ lcpbStickyPostSupport.includes( customPostType.split( ',' )[0] ) && 'date' === orderBy &&
+						{ cabStickyPostSupport.includes( customPostType.split( ',' )[0] ) && 'date' === orderBy &&
 							<ToggleControl
 								label={ __( 'Show sticky posts at the start of the set' ) }
 								checked={ stickyPosts }
@@ -707,7 +707,7 @@ registerBlockType( 'happyprime/content-aggregator', {
 							<SelectControl
 								label={ __( 'Image size' ) }
 								selected={ imageSize }
-								options={ select( 'core/editor' ).getEditorSettings().lcpImageSizeOptions }
+								options={ select( 'core/editor' ).getEditorSettings().cabImageSizeOptions }
 								onChange={ ( value ) => setAttributes( { imageSize: value } ) }
 							/>
 						}

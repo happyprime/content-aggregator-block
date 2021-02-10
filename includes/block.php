@@ -20,7 +20,7 @@ add_filter( 'post_class', __NAMESPACE__ . '\filter_post_classes', 10, 3 );
  * @return string The version number.
  */
 function block_version() {
-	return '0.3.0';
+	return '0.3.1';
 }
 
 /**
@@ -295,7 +295,7 @@ function render_block( $attributes ) {
 				$query->the_post();
 				$post = get_post( get_the_ID() );
 				?>
-				<li <?php post_class( 'lcpb-item' ); ?>>
+				<li <?php post_class( 'cab-item' ); ?>>
 					<a href="<?php the_permalink(); ?>"><?php the_title(); ?></a>
 					<?php
 					if ( isset( $attributes['displayPostDate'] ) && $attributes['displayPostDate'] ) {
@@ -364,7 +364,7 @@ function enqueue_block_editor_assets() {
 	$post_types = wp_json_encode( $post_types_w_sticky_support );
 
 	wp_enqueue_script(
-		'hp-latest-custom-post',
+		'hp-content-aggregator-block',
 		plugins_url( 'build/index.js', __DIR__ ),
 		array(
 			'wp-blocks',
@@ -376,8 +376,8 @@ function enqueue_block_editor_assets() {
 	);
 
 	wp_add_inline_script(
-		'hp-latest-custom-post',
-		"const lcpbStickyPostSupport = $post_types;"
+		'hp-content-aggregator-block',
+		"const cabStickyPostSupport = $post_types;"
 	);
 
 	wp_enqueue_style(
@@ -395,7 +395,7 @@ function enqueue_block_editor_assets() {
  */
 function register_route() {
 	register_rest_route(
-		'lcp/v1',
+		'content-aggregator-block/v1',
 		'posts',
 		array(
 			'methods'  => 'GET',
@@ -478,27 +478,27 @@ function image_size_options( $editor_settings ) {
 		);
 	}
 
-	$editor_settings['lcpImageSizeOptions'] = $image_options;
+	$editor_settings['cabImageSizeOptions'] = $image_options;
 
 	return $editor_settings;
 }
 
 /**
- * Filters classes for posts that have the added `lcpb-item` class.
+ * Filters classes for posts that have the added `cab-item` class.
  *
  * @param array $classes An array of post class names.
  * @param array $class   An array of additional class names added to the post.
  * @param int   $post_id The post ID.
  */
 function filter_post_classes( $classes, $class, $post_id ) {
-	if ( in_array( 'lcpb-item', $class, true ) ) {
+	if ( in_array( 'cab-item', $class, true ) ) {
 		$format = ( has_post_format( $post_id ) ) ? get_post_format( $post_id ) : 'standard';
 
-		// Filter out the `lcpb-item` flag and a handful of default classes.
+		// Filter out the `cab-item` flag and a handful of default classes.
 		$classes = array_diff(
 			$classes,
 			array(
-				'lcpb-item',
+				'cab-item',
 				'hentry',
 				'post-' . $post_id,
 				get_post_type( $post_id ),
@@ -507,8 +507,8 @@ function filter_post_classes( $classes, $class, $post_id ) {
 			)
 		);
 
-		// Prefix the remaining classes with `lcpb-`.
-		$classes = substr_replace( $classes, 'lcpb-', 0, 0 );
+		// Prefix the remaining classes with `cab-`.
+		$classes = substr_replace( $classes, 'cab-', 0, 0 );
 	}
 
 	return $classes;
