@@ -32,6 +32,7 @@ const {
 	RadioControl,
 	IconButton,
 	Spinner,
+	Disabled,
 } = wp.components;
 
 const {
@@ -335,15 +336,17 @@ registerBlockType( 'happyprime/content-aggregator', {
 
 			const item = (
 				<li>
-					<a href={ post.link } target="_blank" rel="noreferrer noopener">
-						{ titleTrimmed ? (
-							<RawHTML>
-								{ titleTrimmed }
-							</RawHTML>
-						) :
-							__( '(Untitled)' )
-						}
-					</a>
+					<Disabled>
+						<a href={ post.link } target="_blank" rel="noreferrer noopener">
+							{ titleTrimmed ? (
+								<RawHTML>
+									{ titleTrimmed }
+								</RawHTML>
+							) :
+								__( '(Untitled)' )
+							}
+						</a>
+					</Disabled>
 					{ displayPostDate && post.date_gmt &&
 						<time dateTime={ format( 'c', post.date_gmt ) } className="wp-block-latest-posts__post-date">
 							{ dateI18n( __experimentalGetSettings().formats.date, post.date_gmt ) }
