@@ -11,6 +11,15 @@
 	margin-bottom: 0;
 }
 
+.happyprime-block-content-aggregator-block_taxonomy .happyprime-block-content-aggregator-block_taxonomy-setting-wrapper select[multiple] {
+	height: auto;
+	padding-right: 8px;
+}
+
+.happyprime-block-content-aggregator-block_taxonomy .happyprime-block-content-aggregator-block_taxonomy-setting-wrapper select[multiple] + .components-input-control__suffix {
+	display: none;
+}
+
 .happyprime-block-content-aggregator-block_remove-taxonomy-setting {
 	border-radius: 50%;
 	left: 6px;
