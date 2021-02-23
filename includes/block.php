@@ -468,6 +468,8 @@ function rest_response( $request ) {
 				'image'    => $image_sizes,
 			);
 
+			$post = apply_filters( 'content_aggregator_block_endpoint_post_data', $post, get_the_ID() );
+
 			$posts[] = $post;
 		}
 		wp_reset_postdata();
