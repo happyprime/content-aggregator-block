@@ -58,6 +58,10 @@ const {
 	applyFilters,
 } = wp.hooks;
 
+const {
+	decodeEntities,
+} = wp.htmlEntities;
+
 const MAX_POSTS_COLUMNS = 6;
 
 const TAXONOMY_SETTING = {
@@ -165,7 +169,7 @@ registerBlockType( 'happyprime/content-aggregator', {
 					} ).then( data => {
 						const termData = data.map( term => {
 							return {
-								label: term.name,
+								label: decodeEntities( term.name ),
 								value: term.id,
 							}
 						} );
