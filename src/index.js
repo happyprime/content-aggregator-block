@@ -53,6 +53,10 @@ const {
 	apiFetch,
 } = wp;
 
+const {
+	applyFilters,
+} = wp.hooks;
+
 const MAX_POSTS_COLUMNS = 6;
 
 const TAXONOMY_SETTING = {
@@ -329,7 +333,7 @@ registerBlockType( 'happyprime/content-aggregator', {
 
 			const excerpt = excerptElement.textContent || excerptElement.innerText || '';
 
-			return (
+			const item = (
 				<li>
 					<a href={ post.link } target="_blank" rel="noreferrer noopener">
 						{ titleTrimmed ? (
@@ -370,6 +374,8 @@ registerBlockType( 'happyprime/content-aggregator', {
 					}
 				</li>
 			);
+
+			return applyFilters( 'contentAggregatorBlock.itemHTML', item, post, attributes )
 		};
 
 		const updatedTaxonomies = ( index, property, value ) => {
