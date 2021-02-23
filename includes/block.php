@@ -294,40 +294,8 @@ function render_block( $attributes ) {
 			while ( $query->have_posts() ) {
 				$query->the_post();
 				$post = get_post( get_the_ID() );
-				?>
-				<li <?php post_class( 'cab-item' ); ?>>
-					<a href="<?php the_permalink(); ?>"><?php the_title(); ?></a>
-					<?php
-					if ( isset( $attributes['displayPostDate'] ) && $attributes['displayPostDate'] ) {
-						?>
-						<time datetime="<?php echo esc_attr( get_the_date( 'c' ) ); ?>" class="wp-block-latest-posts__post-date"><?php echo esc_html( get_the_date( '' ) ); ?></time>
-						<?php
-					}
-					if ( isset( $attributes['displayImage'] ) && $attributes['displayImage'] && has_post_thumbnail() ) {
-						$image_id = get_post_thumbnail_id();
-						echo wp_get_attachment_image( $image_id, $attributes['imageSize'], false );
-					}
-					if ( isset( $attributes['displayPostContent'] ) && $attributes['displayPostContent'] && isset( $attributes['postContent'] ) ) {
-						if ( 'excerpt' === $attributes['postContent'] ) {
-							$post_excerpt    = ( $post->post_excerpt ) ? $post->post_excerpt : $post->post_content;
-							$trimmed_excerpt = esc_html( wp_trim_words( $post_excerpt, $attributes['excerptLength'], '&hellip;' ) );
-							?>
-							<div class="wp-block-latest-posts__post-excerpt">
-								<?php echo wp_kses_post( $trimmed_excerpt ); ?>
-							</div>
-							<?php
-						}
-						if ( 'full_post' === $attributes['postContent'] ) {
-							?>
-							<div class="wp-block-latest-posts__post-full-content">
-								<?php echo wp_kses_post( html_entity_decode( $post->post_content, ENT_QUOTES, get_option( 'blog_charset' ) ) ); ?>
-							</div>
-							<?php
-						}
-					}
-					?>
-				</li>
-				<?php
+
+				render_item( $post, $attributes );
 			}
 			?>
 		</ul>
@@ -347,6 +315,54 @@ function render_block( $attributes ) {
 	}
 
 	return $html;
+}
+
+/**
+ * Render the markup for an individual post item.
+ *
+ * @param WP_Post $post       The post.
+ * @param array   $attributes Attys.
+ */
+function render_item( $post, $attributes ) {
+	ob_start();
+	?>
+	<li <?php post_class( 'cab-item' ); ?>>
+		<a href="<?php the_permalink(); ?>"><?php the_title(); ?></a>
+		<?php
+		if ( isset( $attributes['displayPostDate'] ) && $attributes['displayPostDate'] ) {
+			?>
+			<time datetime="<?php echo esc_attr( get_the_date( 'c' ) ); ?>" class="wp-block-latest-posts__post-date"><?php echo esc_html( get_the_date( '' ) ); ?></time>
+			<?php
+		}
+		if ( isset( $attributes['displayImage'] ) && $attributes['displayImage'] && has_post_thumbnail() ) {
+			$image_id = get_post_thumbnail_id();
+			echo wp_get_attachment_image( $image_id, $attributes['imageSize'], false );
+		}
+		if ( isset( $attributes['displayPostContent'] ) && $attributes['displayPostContent'] && isset( $attributes['postContent'] ) ) {
+			if ( 'excerpt' === $attributes['postContent'] ) {
+				$post_excerpt    = ( $post->post_excerpt ) ? $post->post_excerpt : $post->post_content;
+				$trimmed_excerpt = esc_html( wp_trim_words( $post_excerpt, $attributes['excerptLength'], '&hellip;' ) );
+				?>
+				<div class="wp-block-latest-posts__post-excerpt">
+					<?php echo wp_kses_post( $trimmed_excerpt ); ?>
+				</div>
+				<?php
+			}
+			if ( 'full_post' === $attributes['postContent'] ) {
+				?>
+				<div class="wp-block-latest-posts__post-full-content">
+					<?php echo wp_kses_post( html_entity_decode( $post->post_content, ENT_QUOTES, get_option( 'blog_charset' ) ) ); ?>
+				</div>
+				<?php
+			}
+		}
+		?>
+	</li>
+	<?php
+	$html      = ob_get_clean();
+	$item_html = apply_filters( 'content_aggregator_block_item', $html, $post, $attributes );
+
+	echo wp_kses_post( $item_html );
 }
 
 /**
@@ -451,6 +467,8 @@ function rest_response( $request ) {
 				'excerpt'  => wp_strip_all_tags( get_the_excerpt(), true ),
 				'image'    => $image_sizes,
 			);
+
+			$post = apply_filters( 'content_aggregator_block_endpoint_post_data', $post, get_the_ID() );
 
 			$posts[] = $post;
 		}
