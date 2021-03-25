@@ -5,7 +5,7 @@
   "author": "Happy Prime",
   "license": "GPL-2.0-or-later",
   "devDependencies": {
-    "@wordpress/scripts": "^13.0.3",
+    "@wordpress/scripts": "^14.0.1",
     "classnames": "^2.2.6"
   },
   "scripts": {
