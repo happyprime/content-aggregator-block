@@ -42,6 +42,9 @@ import { decodeEntities } from '@wordpress/html-entities';
 
 import { SVG, Path } from '@wordpress/primitives';
 
+// Import editor styles
+import './editor.scss';
+
 const MAX_POSTS_COLUMNS = 6;
 
 const TAXONOMY_SETTING = {
