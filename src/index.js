@@ -1,29 +1,18 @@
+// External dependencies
 import classnames from 'classnames';
 
-const {
-	__,
-} = wp.i18n;
+// WordPress dependencies
+import { __ } from '@wordpress/i18n';
 
-const {
-	registerBlockType,
-} = wp.blocks;
+import { registerBlockType } from '@wordpress/blocks';
 
-const {
-	withState,
-	compose,
-} = wp.compose;
+import { withState, compose } from '@wordpress/compose';
 
-const {
-	withSelect,
-	select,
-} = wp.data;
+import { withSelect, select } from '@wordpress/data';
 
-const {
-	Fragment,
-	RawHTML,
-} = wp.element;
+import { Fragment, RawHTML } from '@wordpress/element';
 
-const {
+import {
 	PanelBody,
 	SelectControl,
 	ToggleControl,
@@ -33,35 +22,28 @@ const {
 	IconButton,
 	Spinner,
 	Disabled,
-} = wp.components;
+} from '@wordpress/components';
 
-const {
-	InspectorControls,
-	BlockControls,
-	useBlockProps,
-} = ( 'undefined' === typeof wp.blockEditor ) ? wp.editor : wp.blockEditor;
+import { InspectorControls, BlockControls, useBlockProps } from '@wordpress/block-editor';
 
-const {
-	addQueryArgs,
-} = wp.url;
+import { addQueryArgs } from '@wordpress/url';
 
-const {
+import {
 	dateI18n,
 	format,
 	__experimentalGetSettings, // Used to retrieve date format, watch for deprecation.
-} = wp.date;
+} from '@wordpress/date';
 
-const {
-	apiFetch,
-} = wp;
+import apiFetch from '@wordpress/api-fetch';
 
-const {
-	applyFilters,
-} = wp.hooks;
+import { applyFilters } from '@wordpress/hooks';
 
-const {
-	decodeEntities,
-} = wp.htmlEntities;
+import { decodeEntities } from '@wordpress/html-entities';
+
+import { SVG, Path } from '@wordpress/primitives';
+
+// Import editor styles
+import './editor.scss';
 
 const MAX_POSTS_COLUMNS = 6;
 
@@ -74,23 +56,7 @@ const TAXONOMY_SETTING = {
 // Register the block.
 registerBlockType( 'happyprime/content-aggregator', {
 
-	title: __( 'Content Aggregator' ),
-
-	description: __( 'A list of posts for a custom post type and/or taxonomy.' ),
-
-	icon: <svg width="24" height="24" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" role="img" aria-hidden="true" focusable="false"><path d="M0,0h24v24H0V0z" fill="none"></path><rect x="11" y="7" width="6" height="2"></rect><rect x="11" y="11" width="6" height="2"></rect><rect x="11" y="15" width="6" height="2"></rect><rect x="7" y="7" width="2" height="2"></rect><rect x="7" y="11" width="2" height="2"></rect><rect x="7" y="15" width="2" height="2"></rect><path d="M20.1,3H3.9C3.4,3,3,3.4,3,3.9v16.2C3,20.5,3.4,21,3.9,21h16.2c0.4,0,0.9-0.5,0.9-0.9V3.9C21,3.4,20.5,3,20.1,3z M19,19H5V5h14V19z"></path></svg>,
-
-	category: 'widgets',
-
-	keywords: [
-		__( 'recent posts' ),
-		__( 'custom posts' ),
-	],
-
-	supports: {
-		align: true,
-		html: false,
-	},
+	icon: <SVG viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><Path d="M11 7h6v2h-6zM11 11h6v2h-6zM11 15h6v2h-6zM7 7h2v2H7zM7 11h2v2H7zM7 15h2v2H7z"/><Path d="M20.1 3H3.9c-.5 0-.9.4-.9.9v16.2c0 .4.4.9.9.9h16.2c.4 0 .9-.5.9-.9V3.9c0-.5-.5-.9-.9-.9zM19 19H5V5h14v14z"/></SVG>,
 
 	edit: compose( [
 		withState( {
@@ -125,7 +91,7 @@ registerBlockType( 'happyprime/content-aggregator', {
 				stickyPosts,
 			} = attributes;
 
-			const taxonomies = ( 0 < attributes.taxonomies.length )
+			const taxonomies = ( attributes.taxonomies && 0 < attributes.taxonomies.length )
 				? attributes.taxonomies
 				: ( !attributes.customTaxonomy )
 					? []
@@ -261,7 +227,7 @@ registerBlockType( 'happyprime/content-aggregator', {
 			stickyPosts,
 		} = attributes;
 
-		const taxonomies = ( 0 < attributes.taxonomies.length )
+		const taxonomies = ( attributes.taxonomies && 0 < attributes.taxonomies.length )
 			? attributes.taxonomies
 			: ( !attributes.customTaxonomy )
 				? []

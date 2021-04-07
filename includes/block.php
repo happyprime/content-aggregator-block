@@ -8,97 +8,20 @@
 
 namespace HappyPrime\ContentAggregator\Block;
 
-add_action( 'init', __NAMESPACE__ . '\register_block' );
+add_action( 'init', __NAMESPACE__ . '\register' );
 add_action( 'enqueue_block_editor_assets', __NAMESPACE__ . '\enqueue_block_editor_assets' );
 add_action( 'rest_api_init', __NAMESPACE__ . '\register_route' );
 add_filter( 'block_editor_settings', __NAMESPACE__ . '\image_size_options', 10, 1 );
 add_filter( 'post_class', __NAMESPACE__ . '\filter_post_classes', 10, 3 );
 
 /**
- * Provide a block version number for scripts.
- *
- * @return string The version number.
- */
-function block_version() {
-	return '0.3.1';
-}
-
-/**
  * Registers the `happyprime/content-aggregator` block on server.
  */
-function register_block() {
-	register_block_type(
-		'happyprime/content-aggregator',
+function register() {
+	register_block_type_from_metadata(
+		dirname( __DIR__ ),
 		array(
-			'attributes'      => array(
-				'customPostType'     => array(
-					'type'    => 'string',
-					'default' => 'post,posts',
-				),
-				'taxonomies'         => array(
-					'type'    => 'array',
-					'default' => array(),
-				),
-				'taxRelation'        => array(
-					'type'    => 'string',
-					'default' => '',
-				),
-				'itemCount'          => array(
-					'type'    => 'integer',
-					'default' => 3,
-				),
-				'order'              => array(
-					'type'    => 'string',
-					'default' => 'desc',
-				),
-				'orderBy'            => array(
-					'type'    => 'string',
-					'default' => 'date',
-				),
-				'displayPostDate'    => array(
-					'type'    => 'boolean',
-					'default' => false,
-				),
-				'postLayout'         => array(
-					'type'    => 'string',
-					'default' => 'list',
-				),
-				'columns'            => array(
-					'type'    => 'integer',
-					'default' => 2,
-				),
-				'displayPostContent' => array(
-					'type'    => 'boolean',
-					'default' => false,
-				),
-				'postContent'        => array(
-					'type'    => 'string',
-					'default' => 'excerpt',
-				),
-				'excerptLength'      => array(
-					'type'    => 'number',
-					'default' => 55,
-				),
-				'displayImage'       => array(
-					'type'    => 'boolean',
-					'default' => false,
-				),
-				'imageSize'          => array(
-					'type'    => 'string',
-					'default' => 'thumbnail',
-				),
-				'stickyPosts'        => array(
-					'type'    => 'boolean',
-					'default' => true,
-				),
-				// Deprecated.
-				'customTaxonomy'     => array(),
-				'termID'             => array(
-					'type'    => 'integer',
-					'default' => 0,
-				),
-			),
-			'render_callback' => __NAMESPACE__ . '\render_block',
+			'render_callback' => __NAMESPACE__ . '\render',
 		)
 	);
 }
@@ -240,7 +163,7 @@ function build_query_args( $attributes ) {
  *
  * @return string HTML
  */
-function render_block( $attributes ) {
+function render( $attributes ) {
 	$defaults   = array(
 		'customPostType'     => 'post,posts',
 		'taxonomies'         => array(),
@@ -378,30 +301,9 @@ function enqueue_block_editor_assets() {
 
 	$post_types = wp_json_encode( $post_types_w_sticky_support );
 
-	wp_enqueue_script(
-		'hp-content-aggregator-block',
-		plugins_url( 'build/index.js', __DIR__ ),
-		array(
-			'wp-blocks',
-			'wp-i18n',
-			'wp-element',
-		),
-		block_version(),
-		true
-	);
-
 	wp_add_inline_script(
-		'hp-content-aggregator-block',
+		'happyprime-content-aggregator-editor-script',
 		"const cabStickyPostSupport = $post_types;"
-	);
-
-	wp_enqueue_style(
-		'hp-content-aggregator-block',
-		plugins_url( 'css/editor.css', __DIR__ ),
-		array(
-			'wp-edit-blocks',
-		),
-		block_version()
 	);
 }
 
