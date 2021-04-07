@@ -38,6 +38,7 @@ const {
 const {
 	InspectorControls,
 	BlockControls,
+	useBlockProps,
 } = ( 'undefined' === typeof wp.blockEditor ) ? wp.editor : wp.blockEditor;
 
 const {
@@ -434,6 +435,13 @@ registerBlockType( 'happyprime/content-aggregator', {
 			return taxonomiesUpdate;
 		}
 
+		const classNames = classnames( className, {
+			'wp-block-latest-posts': true,
+			'is-grid': postLayout === 'grid',
+			'has-dates': displayPostDate,
+			[ `columns-${ columns }` ]: postLayout === 'grid',
+		} );
+
 		const taxonomySetting = ( taxonomy, index ) => {
 			return (
 				<div className="happyprime-block-content-aggregator-block_taxonomy-setting-wrapper">
@@ -730,14 +738,7 @@ registerBlockType( 'happyprime/content-aggregator', {
 					<Toolbar controls={ layoutControls } />
 				</BlockControls>
 				{ displayPosts && displayPosts.length > 0 ? (
-					<ul
-						className={ classnames( className, {
-							'wp-block-latest-posts': true,
-							'is-grid': postLayout === 'grid',
-							'has-dates': displayPostDate,
-							[ `columns-${ columns }` ]: postLayout === 'grid',
-						} ) }
-					>
+					<ul { ...useBlockProps( { className: classNames } ) } >
 						{ displayPosts && displayPosts.map( post => displayListItem( post ) ) }
 					</ul>
 				) : (
