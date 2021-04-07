@@ -209,33 +209,32 @@ function render( $attributes ) {
 		$container_class .= ' ' . $attributes['className'];
 	}
 
-	if ( $query->have_posts() ) {
-		ob_start();
-		?>
-		<ul class="<?php echo esc_attr( $container_class ); ?>">
-			<?php
+	if ( ! $query->have_posts() ) {
+		$container_class .= ' happyprime-content-aggregator-block_no-posts';
+	}
+
+	$wrapper_attributes = get_block_wrapper_attributes( array( 'class' => $container_class ) );
+
+	ob_start();
+	?>
+	<ul <?php echo $wrapper_attributes; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>>
+		<?php
+		if ( $query->have_posts() ) {
 			while ( $query->have_posts() ) {
 				$query->the_post();
 				$post = get_post( get_the_ID() );
-
 				render_item( $post, $attributes );
 			}
+		} else {
 			?>
-		</ul>
-		<?php
-		$html = ob_get_clean();
-	} else {
-		// Render "No current items" message if no posts are available.
-		$container_class .= ' happyprime-content-aggregator-block_no-posts';
-
-		ob_start();
-		?>
-		<ul class="<?php echo esc_attr( $container_class ); ?>">
 			<li>No current items</li>
-		</ul>
-		<?php
-		$html = ob_get_clean();
-	}
+			<?php
+		}
+		?>
+	</ul>
+	<?php
+
+	$html = ob_get_clean();
 
 	return $html;
 }
