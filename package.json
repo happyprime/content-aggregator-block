@@ -5,12 +5,13 @@
   "author": "Happy Prime",
   "license": "GPL-2.0-or-later",
   "devDependencies": {
-    "@wordpress/scripts": "^14.0.1",
-    "classnames": "^2.2.6"
+    "@wordpress/icons": "^4.0.1",
+    "@wordpress/scripts": "^16.1.4",
+    "classnames": "^2.3.1"
   },
   "scripts": {
     "build": "wp-scripts build",
-    "format:js": "wp-scripts format-js",
+    "format:js": "wp-scripts format",
     "lint:css": "wp-scripts lint-style",
     "lint:js": "wp-scripts lint-js",
     "start": "wp-scripts start"
