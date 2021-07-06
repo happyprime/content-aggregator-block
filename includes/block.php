@@ -357,6 +357,8 @@ function rest_response( $request ) {
 
 					$image_sizes[ $size ] = ( ! $image ) ? false : $image[0];
 				}
+
+				$image_sizes['full'] = wp_get_attachment_image_src( $image_id, 'full' )[0];
 			}
 
 			$post = array(
