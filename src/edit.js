@@ -626,11 +626,11 @@ export default function ContentAggregatorEdit( props ) {
 				{ displayImage && (
 					<SelectControl
 						label={ __( 'Image size' ) }
-						selected={ imageSize }
-						options={ imageSizeOptions }
 						onChange={ ( value ) =>
 							setAttributes( { imageSize: value } )
 						}
+						options={ imageSizeOptions }
+						value={ imageSize }
 					/>
 				) }
 			</PanelBody>
