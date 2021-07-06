@@ -238,7 +238,15 @@ export default function ContentAggregatorEdit( props ) {
 		return () => {
 			isStillMounted.current = false;
 		};
-	}, [ itemCount, order, orderBy, postTypeSlug, stickyPosts, taxonomies ] );
+	}, [
+		itemCount,
+		order,
+		orderBy,
+		postTypeSlug,
+		stickyPosts,
+		taxonomies,
+		taxRelation,
+	] );
 
 	const hasPosts = Array.isArray( latestPosts ) && latestPosts.length;
 
@@ -378,7 +386,6 @@ export default function ContentAggregatorEdit( props ) {
 					) }
 					{ taxonomy.terms && 1 < taxonomy.terms.length && (
 						<RadioControl
-							value={ taxonomy.operator }
 							label={ __( 'Show posts with:' ) }
 							selected={ taxonomy.operator }
 							options={ [
