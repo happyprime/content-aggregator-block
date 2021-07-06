@@ -20,6 +20,7 @@ const transforms = {
 					displayImage: attributes.displayFeaturedImage,
 					imageSize: attributes.featuredImageSizeSlug,
 					stickyPosts: false,
+					addLinkToFeaturedImage: attributes.addLinkToFeaturedImage,
 				} );
 			},
 		},

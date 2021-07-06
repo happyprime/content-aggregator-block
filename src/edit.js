@@ -88,6 +88,7 @@ export default function ContentAggregatorEdit( props ) {
 		displayImage,
 		imageSize,
 		stickyPosts,
+		addLinkToFeaturedImage,
 	} = attributes;
 
 	// Get the selected post type slug.
@@ -635,14 +636,25 @@ export default function ContentAggregatorEdit( props ) {
 					}
 				/>
 				{ displayImage && (
-					<SelectControl
-						label={ __( 'Image size' ) }
-						onChange={ ( value ) =>
-							setAttributes( { imageSize: value } )
-						}
-						options={ imageSizeOptions }
-						value={ imageSize }
-					/>
+					<Fragment>
+						<SelectControl
+							label={ __( 'Image size' ) }
+							onChange={ ( value ) =>
+								setAttributes( { imageSize: value } )
+							}
+							options={ imageSizeOptions }
+							value={ imageSize }
+						/>
+						<ToggleControl
+							label={ __( 'Add link to featured image' ) }
+							checked={ addLinkToFeaturedImage }
+							onChange={ ( value ) =>
+								setAttributes( {
+									addLinkToFeaturedImage: value,
+								} )
+							}
+						/>
+					</Fragment>
 				) }
 			</PanelBody>
 		</InspectorControls>
@@ -689,11 +701,7 @@ export default function ContentAggregatorEdit( props ) {
 		const item = (
 			<li>
 				<Disabled>
-					<a
-						href={ post.link }
-						target="_blank"
-						rel="noreferrer noopener"
-					>
+					<a href={ post.link } rel="noreferrer noopener">
 						{ titleTrimmed ? (
 							<RawHTML>{ titleTrimmed }</RawHTML>
 						) : (
@@ -713,7 +721,20 @@ export default function ContentAggregatorEdit( props ) {
 					</time>
 				) }
 				{ displayImage && post.image[ imageSize ] && (
-					<img src={ post.image[ imageSize ] } alt="" />
+					<figure className="wp-block-latest-posts__post-thumbnail">
+						{ addLinkToFeaturedImage ? (
+							<Disabled>
+								<a href={ post.link } rel="noreferrer noopener">
+									<img
+										src={ post.image[ imageSize ] }
+										alt=""
+									/>
+								</a>
+							</Disabled>
+						) : (
+							<img src={ post.image[ imageSize ] } alt="" />
+						) }
+					</figure>
 				) }
 				{ displayPostContent && postContent === 'excerpt' && (
 					<div className="wp-block-latest-posts__post-excerpt">

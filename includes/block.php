@@ -256,8 +256,16 @@ function render_item( $post, $attributes ) {
 			<?php
 		}
 		if ( isset( $attributes['displayImage'] ) && $attributes['displayImage'] && has_post_thumbnail() ) {
-			$image_id = get_post_thumbnail_id();
-			echo wp_get_attachment_image( $image_id, $attributes['imageSize'], false );
+			$featured_image = get_the_post_thumbnail( get_the_ID(), $attributes['imageSize'] );
+
+			if ( $attributes['addLinkToFeaturedImage'] ) {
+				$featured_image = sprintf( '<a href="%1$s">%2$s</a>', get_permalink(), $featured_image );
+			}
+			?>
+			<figure class="wp-block-latest-posts__post-thumbnail">
+				<?php echo $featured_image; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+			</figure>
+			<?php
 		}
 		if ( isset( $attributes['displayPostContent'] ) && $attributes['displayPostContent'] && isset( $attributes['postContent'] ) ) {
 			if ( 'excerpt' === $attributes['postContent'] ) {

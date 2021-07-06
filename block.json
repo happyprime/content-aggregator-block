@@ -68,6 +68,10 @@
 			"type": "boolean",
 			"default": true
 		},
+		"addLinkToFeaturedImage": {
+			"type": "boolean",
+			"default": false
+		},
 		"customTaxonomy": {},
 		"termID": {
 			"type": "number",
