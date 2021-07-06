@@ -16,7 +16,7 @@ import { addQueryArgs } from '@wordpress/url';
  * render them as `SelectControl` options.
  *
  * @param {Object} props Component properties.
- * @returns SelectControl component.
+ * @return {WPElement} SelectControl component.
  */
 export default function TermSelect( props ) {
 	const { onChange, selectedTerms, taxonomy } = props;
@@ -37,7 +37,7 @@ export default function TermSelect( props ) {
 		} )
 			.then( ( data ) => {
 				if ( isStillMounted.current ) {
-					let termData = data.map( ( term ) => {
+					const termData = data.map( ( term ) => {
 						return {
 							label: decodeEntities( term.name ),
 							value: term.id,
