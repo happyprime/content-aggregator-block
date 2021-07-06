@@ -11,7 +11,6 @@ namespace HappyPrime\ContentAggregator\Block;
 add_action( 'init', __NAMESPACE__ . '\register' );
 add_action( 'enqueue_block_editor_assets', __NAMESPACE__ . '\enqueue_block_editor_assets' );
 add_action( 'rest_api_init', __NAMESPACE__ . '\register_route' );
-add_filter( 'block_editor_settings', __NAMESPACE__ . '\image_size_options', 10, 1 );
 add_filter( 'post_class', __NAMESPACE__ . '\filter_post_classes', 10, 3 );
 
 /**
@@ -243,7 +242,7 @@ function render( $attributes ) {
  * Render the markup for an individual post item.
  *
  * @param WP_Post $post       The post.
- * @param array   $attributes Attys.
+ * @param array   $attributes The block attributes.
  */
 function render_item( $post, $attributes ) {
 	ob_start();
@@ -377,29 +376,6 @@ function rest_response( $request ) {
 	}
 
 	return $posts;
-}
-
-/**
- * Adds image size data to the editor settings so that it is immediately
- * available to the block.
- *
- * @param array $editor_settings Editor settings.
- *
- * @return array
- */
-function image_size_options( $editor_settings ) {
-	$image_options = array();
-
-	foreach ( get_intermediate_image_sizes() as $size ) {
-		$image_options[] = array(
-			'label' => ucwords( str_replace( array( '-', '_' ), ' ', $size ) ),
-			'value' => $size,
-		);
-	}
-
-	$editor_settings['cabImageSizeOptions'] = $image_options;
-
-	return $editor_settings;
 }
 
 /**
