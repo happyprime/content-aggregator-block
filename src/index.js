@@ -57,12 +57,12 @@ import { SVG, Path } from '@wordpress/primitives';
 
 import { addQueryArgs } from '@wordpress/url';
 
-// Internal dependencies.
+// Internal dependencies
 import TermSelect from './term-select';
 
-// Import editor styles
 import './editor.scss';
 
+// Module constants
 const COMMON_ARGS = { per_page: -1 };
 
 const MAX_POSTS_COLUMNS = 6;
@@ -73,7 +73,7 @@ const TAXONOMY_SETTING = {
 	operator: 'IN',
 };
 
-// Register the block.
+// Block registration
 registerBlockType( 'happyprime/content-aggregator', {
 	icon: (
 		<SVG viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -281,12 +281,12 @@ registerBlockType( 'happyprime/content-aggregator', {
 		/**
 		 * Handle updates to the taxonomy settings.
 		 *
-		 * @param {number} index
+		 * @param {number} index    The setting data index.
 		 * @param {string} property The property to update.
-		 * @param {mixed} value
+		 * @param {mixed} value     Updated value to apply to the setting.
 		 * @returns The array with which to update the `taxonomies` attribute.
 		 */
-		 const updatedTaxonomies = ( index, property, value ) => {
+		const updatedTaxonomies = ( index, property, value ) => {
 			let taxonomiesUpdate = Object.values( {
 				...taxonomies,
 				[ index ]: {
@@ -334,9 +334,10 @@ registerBlockType( 'happyprime/content-aggregator', {
 
 		/**
 		 * Display an individual taxonomy setting.
-		 * @param {*} taxonomy
-		 * @param {*} index
-		 * @returns
+		 *
+		 * @param {Object} taxonomy The setting data.
+		 * @param {number} index    The setting data index.
+		 * @returns Setting markup.
 		 */
 		const taxonomySetting = ( taxonomy, index ) => {
 			return (
@@ -432,6 +433,7 @@ registerBlockType( 'happyprime/content-aggregator', {
 			);
 		};
 
+		// Inspector controls markup.
 		const inspectorControls = (
 			<InspectorControls>
 				<PanelBody
