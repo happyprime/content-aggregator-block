@@ -269,28 +269,39 @@ export default function ContentAggregatorEdit( props ) {
 	 * @return {Array} The array with which to update the `taxonomies` attribute.
 	 */
 	const updatedTaxonomies = ( index, property, value ) => {
-		let taxonomiesUpdate = Object.values( {
-			...taxonomies,
-			[ index ]: {
-				...taxonomies[ index ],
-				[ property ]: value,
-			},
-		} );
+		let taxonomiesUpdate;
 
-		// Resets the `terms` and `operator` properties when the slug is changed.
-		if (
-			'slug' === property &&
-			taxonomies[ index ] &&
-			value !== taxonomies[ index ].slug
-		) {
+		if ( taxonomies.length ) {
 			taxonomiesUpdate = Object.values( {
-				...taxonomiesUpdate,
+				...taxonomies,
 				[ index ]: {
-					...taxonomiesUpdate[ index ],
-					terms: [],
-					operator: undefined,
+					...taxonomies[ index ],
+					[ property ]: value,
 				},
 			} );
+		}
+
+		// Initialize a new array for taxonomy settings of none exist,
+		// otherwise reset the other properties if the slug of an existing setting is changed.
+		if ( 'slug' === property ) {
+			if ( ! taxonomies.length ) {
+				taxonomiesUpdate = [
+					{
+						slug: value,
+						terms: [],
+						operator: 'IN',
+					},
+				];
+			} else if ( value !== taxonomies[ index ].slug ) {
+				taxonomiesUpdate = Object.values( {
+					...taxonomiesUpdate,
+					[ index ]: {
+						...taxonomiesUpdate[ index ],
+						terms: [],
+						operator: undefined,
+					},
+				} );
+			}
 		}
 
 		// Handles changes to the `operator` property when terms are changed.
