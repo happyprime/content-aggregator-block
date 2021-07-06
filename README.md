@@ -23,3 +23,7 @@ This JavaScript filter can be used to modify the markup for an individual post i
 ### `content_aggregator_block_item`
 
 This PHP filter can be used to modify the markup for an individual post item as displayed on front-end views. It receives the default markup, the post data, and the block attributes.
+
+### `content_aggregator_block_endpoint_post_data`
+
+This PHP filter can be used to modify the data returned by the REST API route registered by this plugin. It receives the default data and the post ID.
