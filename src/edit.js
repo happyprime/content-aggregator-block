@@ -272,7 +272,7 @@ export default function ContentAggregatorEdit( props ) {
 	const updatedTaxonomies = ( index, property, value ) => {
 		let taxonomiesUpdate;
 
-		if ( taxonomies.length ) {
+		if ( 'undefined' !== typeof taxonomies && taxonomies.length ) {
 			taxonomiesUpdate = Object.values( {
 				...taxonomies,
 				[ index ]: {
@@ -285,7 +285,7 @@ export default function ContentAggregatorEdit( props ) {
 		// Initialize a new array for taxonomy settings of none exist,
 		// otherwise reset the other properties if the slug of an existing setting is changed.
 		if ( 'slug' === property ) {
-			if ( ! taxonomies.length ) {
+			if ( 'undefined' === typeof taxonomies || ! taxonomies.length ) {
 				taxonomiesUpdate = [
 					{
 						slug: value,
