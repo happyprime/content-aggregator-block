@@ -252,7 +252,7 @@ function render_item( $post, $attributes ) {
 		<?php
 		if ( isset( $attributes['displayPostDate'] ) && $attributes['displayPostDate'] ) {
 			?>
-			<time datetime="<?php echo esc_attr( get_the_date( 'c' ) ); ?>" class="wp-block-latest-posts__post-date"><?php echo esc_html( get_the_date( '' ) ); ?></time>
+			<time datetime="<?php echo esc_attr( get_the_date( 'c' ) ); ?>" class="wp-block-latest-posts__post-date"><?php echo esc_html( get_the_date() ); ?></time>
 			<?php
 		}
 		if ( isset( $attributes['displayImage'] ) && $attributes['displayImage'] && has_post_thumbnail() ) {
@@ -371,7 +371,7 @@ function rest_response( $request ) {
 
 			$post = array(
 				'title'    => get_the_title(),
-				'date_gmt' => get_the_date( '' ),
+				'date_gmt' => get_the_date( 'c' ),
 				'link'     => get_the_permalink(),
 				'content'  => get_the_content(),
 				'excerpt'  => wp_strip_all_tags( get_the_excerpt(), true ),
