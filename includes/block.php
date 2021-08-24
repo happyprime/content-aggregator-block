@@ -342,7 +342,7 @@ function rest_response( $request ) {
 		'taxRelation'    => $request->get_param( 'tax_relation' ) ? $request->get_param( 'tax_relation' ) : '',
 		'itemCount'      => $request->get_param( 'per_page' ) ? $request->get_param( 'per_page' ) : 3,
 		'order'          => $request->get_param( 'order' ) ? $request->get_param( 'order' ) : 'desc',
-		'orderBy'        => $request->get_param( 'order_by' ) ? $request->get_param( 'order_by' ) : 'date',
+		'orderBy'        => $request->get_param( 'orderby' ) ? $request->get_param( 'orderby' ) : 'date',
 		'stickyPosts'    => $request->get_param( 'sticky_posts' ) ? true : false,
 	);
 	$args       = build_query_args( $attributes );
