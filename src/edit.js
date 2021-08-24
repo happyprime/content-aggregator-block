@@ -254,7 +254,7 @@ export default function ContentAggregatorEdit( props ) {
 	const blockProps = useBlockProps( {
 		className: classnames( {
 			'wp-block-latest-posts': true,
-			'happyprime-block-content-aggregator-block_error': ! hasPosts,
+			'happyprime-block-cab_error': ! hasPosts,
 			'has-dates': displayPostDate,
 			'is-grid': postLayout === 'grid',
 			[ `columns-${ columns }` ]: postLayout === 'grid',
@@ -335,10 +335,10 @@ export default function ContentAggregatorEdit( props ) {
 	 */
 	const taxonomySetting = ( taxonomy, index ) => {
 		return (
-			<div className="happyprime-block-content-aggregator-block_taxonomy-setting-wrapper">
+			<div className="happyprime-block-cab_taxonomy-setting-wrapper">
 				{ 0 < index && (
 					<Button
-						className="happyprime-block-content-aggregator-block_remove-taxonomy-setting"
+						className="happyprime-block-cab_taxonomy-remove-setting"
 						icon={ cancelCircleFilled }
 						label={ __( 'Remove taxonomy setting' ) }
 						onClick={ () => {
@@ -354,7 +354,7 @@ export default function ContentAggregatorEdit( props ) {
 						} }
 					/>
 				) }
-				<div className="happyprime-block-content-aggregator-block_taxonomy-setting">
+				<div className="happyprime-block-cab_taxonomy-setting">
 					<SelectControl
 						label={ __( 'Taxonomy' ) }
 						value={ taxonomy.slug ? taxonomy.slug : '' }
@@ -510,37 +510,19 @@ export default function ContentAggregatorEdit( props ) {
 							} }
 						/>
 					) }
-				<div className="happyprime-block-content-aggregator-block_taxonomy">
-					{ taxonomies && 1 < taxonomies.length && (
-						<p>{ __( 'Taxonomy Settings' ) }</p>
-					) }
-					<div className="happyprime-block-content-aggregator-block_taxonomy-settings">
-						{ taxonomies && 0 < taxonomies.length
-							? taxonomies.map( ( taxonomy, index ) =>
-									taxonomySetting( taxonomy, index )
-							  )
-							: taxonomySetting( TAXONOMY_SETTING, 0 ) }
-					</div>
-					{ taxonomies && 1 < taxonomies.length && (
-						<RadioControl
-							label={ __( 'Taxonomy Relation' ) }
-							selected={ taxRelation }
-							options={ [
-								{ label: __( 'And' ), value: 'AND' },
-								{ label: __( 'Or' ), value: 'OR' },
-							] }
-							onChange={ ( option ) =>
-								setAttributes( {
-									taxRelation: option,
-								} )
-							}
-						/>
-					) }
+				<div className="happyprime-block-cab_taxonomy-settings">
+					<p>{ __( 'Taxonomy Settings' ) }</p>
+					{ taxonomies && 0 < taxonomies.length
+						? taxonomies.map( ( taxonomy, index ) =>
+								taxonomySetting( taxonomy, index )
+							)
+						: taxonomySetting( TAXONOMY_SETTING, 0 ) }
 					{ taxonomies &&
 						0 < taxonomies.length &&
 						taxonomies[ 0 ].terms &&
 						0 < taxonomies[ 0 ].terms.length && (
 							<Button
+								className="happyprime-block-cab_taxonomy-add-setting"
 								icon={ plusCircle }
 								label={ __( 'Add more taxonomy settings' ) }
 								onClick={ () => {
@@ -559,6 +541,22 @@ export default function ContentAggregatorEdit( props ) {
 								text={ __( 'Add more taxonomy settings' ) }
 							/>
 						) }
+					{ taxonomies && 1 < taxonomies.length && (
+						<RadioControl
+							className="happyprime-block-cab_taxonomy-relation"
+							label={ __( 'Taxonomy Relation' ) }
+							selected={ taxRelation }
+							options={ [
+								{ label: __( 'And' ), value: 'AND' },
+								{ label: __( 'Or' ), value: 'OR' },
+							] }
+							onChange={ ( option ) =>
+								setAttributes( {
+									taxRelation: option,
+								} )
+							}
+						/>
+					) }
 				</div>
 				{ postLayout === 'grid' && (
 					<RangeControl

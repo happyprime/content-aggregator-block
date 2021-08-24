@@ -60,6 +60,7 @@ export default function TermSelect( props ) {
 
 	return (
 		<SelectControl
+			className="happyprime-block-cab_taxonomy-term-select"
 			help={ __( 'Ctrl/Cmd + click to select multiple terms' ) }
 			label={ __( 'Term(s)' ) }
 			multiple
