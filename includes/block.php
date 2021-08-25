@@ -200,12 +200,22 @@ function render( $attributes ) {
 		$container_class .= ' columns-' . $attributes['columns'];
 	}
 
+	if ( isset( $attributes['displayImage'] ) && $attributes['displayImage'] ) {
+		$container_class .= ' cab-has-post-thumbnail';
+	}
+
 	if ( isset( $attributes['displayPostDate'] ) && $attributes['displayPostDate'] ) {
-		$container_class .= ' has-dates';
+		$container_class .= ' cab-has-post-date';
+	}
+
+	if ( isset( $attributes['displayPostContent'] ) && $attributes['displayPostContent'] && isset( $attributes['postContent'] ) ) {
+		$container_class .= ( 'full_post' === $attributes['postContent'] )
+			? ' cab-has-post-content'
+			: ' cab-has-post-excerpt';
 	}
 
 	if ( isset( $attributes['className'] ) ) {
-		$container_class .= ' ' . $attributes['className'];
+		$container_class .= $attributes['className'];
 	}
 
 	if ( ! $query->have_posts() ) {
@@ -226,7 +236,7 @@ function render( $attributes ) {
 			}
 		} else {
 			?>
-			<li>No current items</li>
+			<li><?php esc_html_e( 'No current items' ); ?></li>
 			<?php
 		}
 		?>

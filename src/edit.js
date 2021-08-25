@@ -255,7 +255,10 @@ export default function ContentAggregatorEdit( props ) {
 		className: classnames( {
 			'wp-block-latest-posts': true,
 			'happyprime-block-cab_error': ! hasPosts,
-			'has-dates': displayPostDate,
+			'cab-has-post-thumbnail': displayImage,
+			'cab-has-post-date': displayPostDate,
+			'cab-has-post-content': displayPostContent & postContent === 'full_post',
+			'cab-has-post-excerpt': displayPostContent & postContent === 'excerpt',
 			'is-grid': postLayout === 'grid',
 			[ `columns-${ columns }` ]: postLayout === 'grid',
 		} ),
