@@ -542,20 +542,22 @@ export default function ContentAggregatorEdit( props ) {
 							/>
 						) }
 					{ taxonomies && 1 < taxonomies.length && (
-						<RadioControl
-							className="happyprime-block-cab_taxonomy-relation"
-							label={ __( 'Taxonomy Relation' ) }
-							selected={ taxRelation }
-							options={ [
-								{ label: __( 'And' ), value: 'AND' },
-								{ label: __( 'Or' ), value: 'OR' },
-							] }
-							onChange={ ( option ) =>
-								setAttributes( {
-									taxRelation: option,
-								} )
-							}
-						/>
+						<div className="happyprime-block-cab_taxonomy-relation">
+							<p>{__( 'Taxonomy Settings Relationship' ) }</p>
+							<RadioControl
+								label={ __( 'Show posts that match:' ) }
+								selected={ taxRelation }
+								options={ [
+									{ label: __( 'All settings ("AND")' ), value: 'AND' },
+									{ label: __( 'Any settings ("OR")' ), value: 'OR' },
+								] }
+								onChange={ ( option ) =>
+									setAttributes( {
+										taxRelation: option,
+									} )
+								}
+							/>
+						</div>
 					) }
 				</div>
 				{ postLayout === 'grid' && (
