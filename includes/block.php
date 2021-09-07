@@ -239,6 +239,7 @@ function render( $attributes ) {
 			<li><?php esc_html_e( 'No current items' ); ?></li>
 			<?php
 		}
+		wp_reset_postdata();
 		?>
 	</ul>
 	<?php
