@@ -200,12 +200,22 @@ function render( $attributes ) {
 		$container_class .= ' columns-' . $attributes['columns'];
 	}
 
+	if ( isset( $attributes['displayImage'] ) && $attributes['displayImage'] ) {
+		$container_class .= ' cab-has-post-thumbnail';
+	}
+
 	if ( isset( $attributes['displayPostDate'] ) && $attributes['displayPostDate'] ) {
-		$container_class .= ' has-dates';
+		$container_class .= ' cab-has-post-date';
+	}
+
+	if ( isset( $attributes['displayPostContent'] ) && $attributes['displayPostContent'] && isset( $attributes['postContent'] ) ) {
+		$container_class .= ( 'full_post' === $attributes['postContent'] )
+			? ' cab-has-post-content'
+			: ' cab-has-post-excerpt';
 	}
 
 	if ( isset( $attributes['className'] ) ) {
-		$container_class .= ' ' . $attributes['className'];
+		$container_class .= $attributes['className'];
 	}
 
 	if ( ! $query->have_posts() ) {
@@ -226,9 +236,10 @@ function render( $attributes ) {
 			}
 		} else {
 			?>
-			<li>No current items</li>
+			<li><?php esc_html_e( 'No current items' ); ?></li>
 			<?php
 		}
+		wp_reset_postdata();
 		?>
 	</ul>
 	<?php
@@ -252,7 +263,7 @@ function render_item( $post, $attributes ) {
 		<?php
 		if ( isset( $attributes['displayPostDate'] ) && $attributes['displayPostDate'] ) {
 			?>
-			<time datetime="<?php echo esc_attr( get_the_date( 'c' ) ); ?>" class="wp-block-latest-posts__post-date"><?php echo esc_html( get_the_date( '' ) ); ?></time>
+			<time datetime="<?php echo esc_attr( get_the_date( 'c' ) ); ?>" class="wp-block-latest-posts__post-date"><?php echo esc_html( get_the_date() ); ?></time>
 			<?php
 		}
 		if ( isset( $attributes['displayImage'] ) && $attributes['displayImage'] && has_post_thumbnail() ) {
@@ -342,7 +353,7 @@ function rest_response( $request ) {
 		'taxRelation'    => $request->get_param( 'tax_relation' ) ? $request->get_param( 'tax_relation' ) : '',
 		'itemCount'      => $request->get_param( 'per_page' ) ? $request->get_param( 'per_page' ) : 3,
 		'order'          => $request->get_param( 'order' ) ? $request->get_param( 'order' ) : 'desc',
-		'orderBy'        => $request->get_param( 'order_by' ) ? $request->get_param( 'order_by' ) : 'date',
+		'orderBy'        => $request->get_param( 'orderby' ) ? $request->get_param( 'orderby' ) : 'date',
 		'stickyPosts'    => $request->get_param( 'sticky_posts' ) ? true : false,
 	);
 	$args       = build_query_args( $attributes );
@@ -371,7 +382,7 @@ function rest_response( $request ) {
 
 			$post = array(
 				'title'    => get_the_title(),
-				'date_gmt' => get_the_date( '' ),
+				'date_gmt' => get_the_date( 'c' ),
 				'link'     => get_the_permalink(),
 				'content'  => get_the_content(),
 				'excerpt'  => wp_strip_all_tags( get_the_excerpt(), true ),
