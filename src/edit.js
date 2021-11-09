@@ -401,16 +401,20 @@ export default function ContentAggregatorEdit( props ) {
 					) }
 					{ taxonomy.terms && 1 < taxonomy.terms.length && (
 						<RadioControl
-							label={ __( 'Show posts with:' ) }
+							label={ __( 'Show posts:' ) }
 							selected={ taxonomy.operator }
 							options={ [
 								{
-									label: __( 'Any selected terms' ),
+									label: __( 'With any selected terms' ),
 									value: 'IN',
 								},
 								{
-									label: __( 'All selected terms' ),
+									label: __( 'With all selected terms' ),
 									value: 'AND',
+								},
+								{
+									label: __( 'Without the selected terms' ),
+									value: 'NOT IN',
 								},
 							] }
 							onChange={ ( value ) =>
