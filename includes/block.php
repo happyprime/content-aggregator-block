@@ -47,6 +47,14 @@ function build_query_args( $attributes ) {
 		'fields'         => 'ids',
 	);
 
+	if ( 'meta_value' === $attributes['orderBy'] && $attributes['orderByMetaKey'] ) {
+		$args['meta_key'] = $attributes['orderByMetaKey']; // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key
+
+		if ( $attributes['orderByMetaOrder'] ) {
+			$args['order'] = $attributes['orderByMetaOrder'];
+		}
+	}
+
 	// If this is a previous version of the block, overwrite
 	// the `customTaxonomy` attribute using the new format.
 	if ( $attributes['termID'] && ! is_array( $attributes['customTaxonomy'] ) ) {
@@ -93,6 +101,26 @@ function build_query_args( $attributes ) {
 		}
 
 		$args['tax_query'] = $tax_query; // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_tax_query
+	}
+
+	// Add meta query parameters.
+	if ( ! empty( $attributes['metaQuery'] ) ) {
+		$meta_query = array();
+
+		if ( '' !== $attributes['metaRelation'] ) {
+			$meta_query['relation'] = $attributes['metaRelation'];
+		}
+
+		foreach ( $attributes['metaQuery'] as $meta ) {
+			$meta_query[] = array(
+				'key'     => $meta['key'],
+				'value'   => wp_date( 'Y-m-d H:i:s' ), // 2021-11-12 13:00:00
+				'compare' => $meta['compare'],
+				'type'    => $meta['type'],
+			);
+		}
+
+		$args['meta_query'] = $meta_query; // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
 	}
 
 	// Add arguments to account for sticky posts if appropriate.
@@ -350,13 +378,15 @@ function register_posts_endpoint() {
  */
 function posts_rest_response( $request ) {
 	$attributes = array(
-		'customPostType' => $request->get_param( 'post_type' ) ? $request->get_param( 'post_type' ) : 'post,posts',
-		'taxonomies'     => $request->get_param( 'taxonomies' ) ? $request->get_param( 'taxonomies' ) : array(),
-		'taxRelation'    => $request->get_param( 'tax_relation' ) ? $request->get_param( 'tax_relation' ) : '',
-		'itemCount'      => $request->get_param( 'per_page' ) ? $request->get_param( 'per_page' ) : 3,
-		'order'          => $request->get_param( 'order' ) ? $request->get_param( 'order' ) : 'desc',
-		'orderBy'        => $request->get_param( 'orderby' ) ? $request->get_param( 'orderby' ) : 'date',
+		'customPostType' => $request->get_param( 'post_type' ) ?? 'post,posts',
+		'taxonomies'     => $request->get_param( 'taxonomies' ) ?? array(),
+		'taxRelation'    => $request->get_param( 'tax_relation' ) ?? '',
+		'itemCount'      => $request->get_param( 'per_page' ) ?? 3,
+		'order'          => $request->get_param( 'order' ) ?? 'desc',
+		'orderBy'        => $request->get_param( 'orderby' ) ?? 'date',
+		'orderByMetaKey' => $request->get_param( 'meta_key' ) ?? '',
 		'stickyPosts'    => $request->get_param( 'sticky_posts' ) ? true : false,
+		'metaQuery'      => $request->get_param( 'meta_query' ) ?? array(),
 	);
 	$args       = build_query_args( $attributes );
 	$query      = new \WP_Query( $args );
