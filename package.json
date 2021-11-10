@@ -5,8 +5,9 @@
   "author": "Happy Prime",
   "license": "GPL-2.0-or-later",
   "devDependencies": {
-    "@wordpress/icons": "^5.0.1",
-    "@wordpress/scripts": "^18.0.0",
+    "@wordpress/eslint-plugin": "^9.2.0",
+    "@wordpress/icons": "^6.1.0",
+    "@wordpress/scripts": "^19.1.0",
     "classnames": "^2.3.1"
   },
   "scripts": {
