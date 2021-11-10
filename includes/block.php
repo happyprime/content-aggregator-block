@@ -8,15 +8,16 @@
 
 namespace HappyPrime\ContentAggregator\Block;
 
-add_action( 'init', __NAMESPACE__ . '\register' );
+add_action( 'init', __NAMESPACE__ . '\register_block' );
 add_action( 'enqueue_block_editor_assets', __NAMESPACE__ . '\enqueue_block_editor_assets' );
-add_action( 'rest_api_init', __NAMESPACE__ . '\register_route' );
+add_action( 'rest_api_init', __NAMESPACE__ . '\register_posts_endpoint' );
 add_filter( 'post_class', __NAMESPACE__ . '\filter_post_classes', 10, 3 );
+add_action( 'rest_api_init', __NAMESPACE__ . '\register_meta_endpoint' );
 
 /**
  * Registers the `happyprime/content-aggregator` block on server.
  */
-function register() {
+function register_block() {
 	register_block_type_from_metadata(
 		dirname( __DIR__ ),
 		array(
@@ -263,7 +264,7 @@ function render_item( $post, $attributes ) {
 		<?php
 		if ( isset( $attributes['displayPostDate'] ) && $attributes['displayPostDate'] ) {
 			?>
-			<time datetime="<?php echo esc_attr( get_the_date( 'c' ) ); ?>" class="wp-block-latest-posts__post-date"><?php echo esc_html( get_the_date() ); ?></time>
+			<div class="wp-block-latest-posts__post-date"><?php echo esc_html( get_the_date() ); ?></div>
 			<?php
 		}
 		if ( isset( $attributes['displayImage'] ) && $attributes['displayImage'] && has_post_thumbnail() ) {
@@ -321,20 +322,21 @@ function enqueue_block_editor_assets() {
 
 	wp_add_inline_script(
 		'happyprime-content-aggregator-editor-script',
-		"const cabStickyPostSupport = $post_types;"
+		"const cabStickyPostSupport = $post_types;",
+		'before'
 	);
 }
 
 /**
  * Register a REST API route for this block.
  */
-function register_route() {
+function register_posts_endpoint() {
 	register_rest_route(
 		'content-aggregator-block/v1',
 		'posts',
 		array(
 			'methods'  => 'GET',
-			'callback' => __NAMESPACE__ . '\rest_response',
+			'callback' => __NAMESPACE__ . '\posts_rest_response',
 		)
 	);
 }
@@ -346,7 +348,7 @@ function register_route() {
  *
  * @return array Posts found using the provided parameters.
  */
-function rest_response( $request ) {
+function posts_rest_response( $request ) {
 	$attributes = array(
 		'customPostType' => $request->get_param( 'post_type' ) ? $request->get_param( 'post_type' ) : 'post,posts',
 		'taxonomies'     => $request->get_param( 'taxonomies' ) ? $request->get_param( 'taxonomies' ) : array(),
@@ -428,4 +430,33 @@ function filter_post_classes( $classes, $class, $post_id ) {
 	}
 
 	return $classes;
+}
+
+/**
+ * Register `meta` endpoint for fetching keys registered for a given post type.
+ */
+function register_meta_endpoint() {
+	register_rest_route(
+		'content-aggregator-block/v1',
+		'meta',
+		array(
+			'methods'  => 'GET',
+			'callback' => __NAMESPACE__ . '\meta_rest_response',
+		)
+	);
+}
+
+/**
+ * Return the meta keys registered for the provided post type.
+ *
+ * @param \WP_Request $request The incoming REST API request object.
+ *
+ * @return array Posts found using the provided parameters.
+ */
+function meta_rest_response( $request ) {
+	global $wp_meta_keys;
+
+	$subtype = $request->get_param( 'post_type' ) ?? 'post';
+
+	return array_keys( $wp_meta_keys['post'][ $subtype ] );
 }

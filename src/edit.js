@@ -27,7 +27,6 @@ import { useSelect } from '@wordpress/data';
 
 import {
 	dateI18n,
-	format,
 	__experimentalGetSettings, // Used to retrieve date format, watch for deprecation.
 } from '@wordpress/date';
 
@@ -56,6 +55,10 @@ import { addQueryArgs } from '@wordpress/url';
 // Internal dependencies
 import TermSelect from './term-select';
 
+import MetaOrderControl from './meta-order-control';
+
+import MetaQueryControl from './meta-query-control';
+
 import './editor.scss';
 
 // Module constants
@@ -73,22 +76,26 @@ export default function ContentAggregatorEdit( props ) {
 	const { attributes, setAttributes } = props;
 
 	const {
-		itemCount,
+		addLinkToFeaturedImage,
+		columns,
 		customPostType,
-		taxonomies,
-		taxRelation,
+		displayImage,
+		displayPostContent,
+		displayPostDate,
+		excerptLength,
+		imageSize,
+		itemCount,
+		metaQuery,
+		metaRelation,
 		order,
 		orderBy,
-		displayPostDate,
-		postLayout,
-		columns,
-		displayPostContent,
+		orderByMetaKey,
+		orderByMetaOrder,
 		postContent,
-		excerptLength,
-		displayImage,
-		imageSize,
+		postLayout,
 		stickyPosts,
-		addLinkToFeaturedImage,
+		taxRelation,
+		taxonomies,
 	} = attributes;
 
 	// Get the selected post type slug.
@@ -100,8 +107,8 @@ export default function ContentAggregatorEdit( props ) {
 			const { getPostTypes, getTaxonomies } = select( 'core' );
 			const postTypes = getPostTypes( COMMON_ARGS );
 			const allTaxonomies = getTaxonomies( COMMON_ARGS );
-			const imageSizes = select( 'core/block-editor' ).getSettings()
-				.imageSizes;
+			const imageSizes =
+				select( 'core/block-editor' ).getSettings().imageSizes;
 
 			// Exclude `attachment` from the post type options. Filtered to allow customization.
 			const excludeTypes = applyFilters(
@@ -188,6 +195,11 @@ export default function ContentAggregatorEdit( props ) {
 			orderby: orderBy,
 		};
 
+		if ( 'meta_value' === orderBy && orderByMetaKey ) {
+			postsFetchData.meta_key = orderByMetaKey;
+			postsFetchData.order = orderByMetaOrder;
+		}
+
 		if ( cabStickyPostSupport.includes( postTypeSlug ) && stickyPosts ) {
 			postsFetchData.sticky_posts = true;
 		}
@@ -197,6 +209,14 @@ export default function ContentAggregatorEdit( props ) {
 
 			if ( taxRelation ) {
 				postsFetchData.tax_relation = taxRelation;
+			}
+		}
+
+		if ( metaQuery ) {
+			postsFetchData.meta_query = metaQuery;
+
+			if ( metaRelation ) {
+				postsFetchData.meta_relation = metaRelation;
 			}
 		}
 
@@ -241,8 +261,12 @@ export default function ContentAggregatorEdit( props ) {
 		};
 	}, [
 		itemCount,
+		metaQuery,
+		metaRelation,
 		order,
 		orderBy,
+		orderByMetaKey,
+		orderByMetaOrder,
 		postTypeSlug,
 		stickyPosts,
 		taxonomies,
@@ -257,8 +281,10 @@ export default function ContentAggregatorEdit( props ) {
 			'happyprime-block-cab_error': ! hasPosts,
 			'cab-has-post-thumbnail': displayImage,
 			'cab-has-post-date': displayPostDate,
-			'cab-has-post-content': displayPostContent & postContent === 'full_post',
-			'cab-has-post-excerpt': displayPostContent & postContent === 'excerpt',
+			'cab-has-post-content':
+				displayPostContent && postContent === 'full_post',
+			'cab-has-post-excerpt':
+				displayPostContent && postContent === 'excerpt',
 			'is-grid': postLayout === 'grid',
 			[ `columns-${ columns }` ]: postLayout === 'grid',
 		} ),
@@ -267,9 +293,9 @@ export default function ContentAggregatorEdit( props ) {
 	/**
 	 * Handle updates to the taxonomy settings.
 	 *
-	 * @param {number} index    The setting data index.
-	 * @param {string} property The property to update.
-	 * @param {string|Array} value     Updated value to apply to the setting.
+	 * @param {number}       index    The setting data index.
+	 * @param {string}       property The property to update.
+	 * @param {string|Array} value    Updated value to apply to the setting.
 	 * @return {Array} The array with which to update the `taxonomies` attribute.
 	 */
 	const updatedTaxonomies = ( index, property, value ) => {
@@ -285,7 +311,7 @@ export default function ContentAggregatorEdit( props ) {
 			} );
 		}
 
-		// Initialize a new array for taxonomy settings of none exist,
+		// Initialize a new array for taxonomy settings if none exist,
 		// otherwise reset the other properties if the slug of an existing setting is changed.
 		if ( 'slug' === property ) {
 			if ( 'undefined' === typeof taxonomies || ! taxonomies.length ) {
@@ -436,13 +462,50 @@ export default function ContentAggregatorEdit( props ) {
 	// Inspector controls markup.
 	const inspectorControls = (
 		<InspectorControls>
-			<PanelBody
-				title={ __( 'Sorting and Filtering' ) }
-				className="panelbody-custom-latest-posts"
-			>
+			<PanelBody title={ __( 'Settings' ) } className="happyprime-block-cab">
+				{ postLayout === 'grid' && (
+					<RangeControl
+						label={ __( 'Columns' ) }
+						value={ columns }
+						onChange={ ( value ) => setAttributes( { columns: value } ) }
+						min={ 2 }
+						max={
+							! hasPosts
+								? MAX_POSTS_COLUMNS
+								: Math.min(
+									MAX_POSTS_COLUMNS,
+									latestPosts.length
+								)
+						}
+						required
+					/>
+				) }
+				<SelectControl
+					help={ __(
+						'WordPress contains different types of content which are divided into collections called "Post Types". Default types include blog posts and pages, though plugins may remove these or add others.'
+					) }
+					label={ __( 'Post Type' ) }
+					value={ customPostType }
+					options={ postTypeOptions }
+					onChange={ ( value ) => {
+						setAttributes( {
+							customPostType: value,
+							taxonomies: [],
+						} );
+					} }
+				/>
+				<RangeControl
+					label={ __( 'Number of Items' ) }
+					value={ itemCount }
+					onChange={ ( value ) => {
+						setAttributes( { itemCount: Number( value ) } );
+					} }
+					min={ 1 }
+					max={ 100 }
+				/>
 				<SelectControl
 					key="query-controls-order-select"
-					label={ __( 'Order by' ) }
+					label={ __( 'Order By' ) }
 					value={ `${ orderBy }/${ order }` }
 					options={ [
 						{
@@ -465,6 +528,10 @@ export default function ContentAggregatorEdit( props ) {
 							label: __( 'Random' ),
 							value: 'rand/desc',
 						},
+						{
+							label: __( 'Meta Value' ),
+							value: 'meta_value/desc',
+						},
 					] }
 					onChange={ ( value ) => {
 						const [ newOrderBy, newOrder ] = value.split( '/' );
@@ -483,80 +550,65 @@ export default function ContentAggregatorEdit( props ) {
 						}
 					} }
 				/>
-				<RangeControl
-					label={ __( 'Number of items' ) }
-					value={ itemCount }
-					onChange={ ( value ) => {
-						setAttributes( { itemCount: Number( value ) } );
-					} }
-					min={ 1 }
-					max={ 100 }
-				/>
-				<SelectControl
-					label={ __( 'Post Type' ) }
-					value={ customPostType }
-					options={ postTypeOptions }
-					onChange={ ( value ) => {
-						setAttributes( {
-							customPostType: value,
-							taxonomies: [],
-						} );
-					} }
-				/>
-				{ cabStickyPostSupport.includes(
-					customPostType.split( ',' )[ 0 ]
-				) &&
+				{ 'meta_value' === orderBy && <MetaOrderControl blockProps={ props } /> }
+				{ cabStickyPostSupport.includes( customPostType.split( ',' )[ 0 ] ) &&
 					'date' === orderBy && (
-						<ToggleControl
-							label={ __(
-								'Show sticky posts at the start of the set'
-							) }
-							checked={ stickyPosts }
-							onChange={ ( value ) => {
-								setAttributes( { stickyPosts: value } );
-							} }
-						/>
-					) }
+					<ToggleControl
+						label={ __(
+							'Show sticky posts at the start of the set'
+						) }
+						checked={ stickyPosts }
+						onChange={ ( value ) => {
+							setAttributes( { stickyPosts: value } );
+						} }
+					/>
+				) }
+			</PanelBody>
+			<PanelBody title={ __( 'Filters' ) } className="happyprime-block-cab">
 				<div className="happyprime-block-cab_taxonomy-settings">
-					<p>{ __( 'Taxonomy Settings' ) }</p>
+					<p>{ __( 'Taxonomies' ) }</p>
 					{ taxonomies && 0 < taxonomies.length
 						? taxonomies.map( ( taxonomy, index ) =>
-								taxonomySetting( taxonomy, index )
-							)
+							taxonomySetting( taxonomy, index )
+						)
 						: taxonomySetting( TAXONOMY_SETTING, 0 ) }
 					{ taxonomies &&
 						0 < taxonomies.length &&
 						taxonomies[ 0 ].terms &&
 						0 < taxonomies[ 0 ].terms.length && (
-							<Button
-								className="happyprime-block-cab_taxonomy-add-setting"
-								icon={ plusCircle }
-								label={ __( 'Add more taxonomy settings' ) }
-								onClick={ () => {
-									setAttributes( {
-										taxonomies: taxonomies.concat(
-											TAXONOMY_SETTING
-										),
-									} );
+						<Button
+							className="happyprime-block-cab_taxonomy-add-setting"
+							icon={ plusCircle }
+							onClick={ () => {
+								setAttributes( {
+									taxonomies:
+											taxonomies.concat( TAXONOMY_SETTING ),
+								} );
 
-									if ( ! taxRelation ) {
-										setAttributes( {
-											taxRelation: 'AND',
-										} );
-									}
-								} }
-								text={ __( 'Add more taxonomy settings' ) }
-							/>
-						) }
+								if ( ! taxRelation ) {
+									setAttributes( {
+										taxRelation: 'AND',
+									} );
+								}
+							} }
+							text={ __( 'Add more taxonomy settings' ) }
+						/>
+					) }
 					{ taxonomies && 1 < taxonomies.length && (
 						<div className="happyprime-block-cab_taxonomy-relation">
-							<p>{__( 'Taxonomy Settings Relationship' ) }</p>
+							<p>{ __( 'Taxonomy Settings Relationship' ) }</p>
 							<RadioControl
 								label={ __( 'Show posts that match:' ) }
 								selected={ taxRelation }
 								options={ [
-									{ label: __( 'All settings ("AND")' ), value: 'AND' },
-									{ label: __( 'Any settings ("OR")' ), value: 'OR' },
+									{
+										label: __( 'All settings ("AND")' ),
+										value: 'AND',
+									},
+									{
+										label: __( 'Any settings ("OR")' ),
+										value: 'OR',
+									},
 								] }
 								onChange={ ( option ) =>
 									setAttributes( {
@@ -567,29 +619,11 @@ export default function ContentAggregatorEdit( props ) {
 						</div>
 					) }
 				</div>
-				{ postLayout === 'grid' && (
-					<RangeControl
-						label={ __( 'Columns' ) }
-						value={ columns }
-						onChange={ ( value ) =>
-							setAttributes( { columns: value } )
-						}
-						min={ 2 }
-						max={
-							! hasPosts
-								? MAX_POSTS_COLUMNS
-								: Math.min(
-										MAX_POSTS_COLUMNS,
-										latestPosts.length
-								  )
-						}
-						required
-					/>
-				) }
+				<MetaQueryControl blockProps={ props } />
 			</PanelBody>
 			<PanelBody
-				title={ __( 'Post Content Settings' ) }
-				className="panelbody-custom-latest-posts"
+				title={ __( 'Post Template' ) }
+				className="happyprime-block-cab"
 			>
 				<ToggleControl
 					label={ __( 'Display post date' ) }
