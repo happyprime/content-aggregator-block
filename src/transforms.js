@@ -28,19 +28,21 @@ const transforms = {
 			type: 'block',
 			blocks: [ 'happyprime/latest-custom-posts' ],
 			transform: ( attributes ) => {
+				/* eslint-disable no-nested-ternary */
 				const taxonomies =
 					attributes.taxonomies && 0 < attributes.taxonomies.length
 						? attributes.taxonomies
 						: ! attributes.customTaxonomy
-						? []
-						: 'string' !== typeof attributes.customTaxonomy
-						? attributes.customTaxonomy
-						: [
-								{
-									slug: attributes.customTaxonomy,
-									terms: [ `${ attributes.termID }` ],
-								},
-						  ];
+							? []
+							: 'string' !== typeof attributes.customTaxonomy
+								? attributes.customTaxonomy
+								: [
+									{
+										slug: attributes.customTaxonomy,
+										terms: [ `${ attributes.termID }` ],
+									},
+								];
+				/* eslint-enable no-nested-ternary */
 
 				return createBlock( 'happyprime/content-aggregator', {
 					customPostType: attributes.customPostType,

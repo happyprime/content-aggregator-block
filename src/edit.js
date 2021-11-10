@@ -1,7 +1,9 @@
-// External dependencies
+/*global cabStickyPostSupport */
+
+// External dependencies.
 import classnames from 'classnames';
 
-// WordPress dependencies
+// WordPress dependencies.
 import apiFetch from '@wordpress/api-fetch';
 
 import {
@@ -52,7 +54,7 @@ import {
 
 import { addQueryArgs } from '@wordpress/url';
 
-// Internal dependencies
+// Internal dependencies.
 import TermSelect from './term-select';
 
 import MetaOrderControl from './meta-order-control';
@@ -61,7 +63,7 @@ import MetaQueryControl from './meta-query-control';
 
 import './editor.scss';
 
-// Module constants
+// Module constants.
 const COMMON_ARGS = { per_page: -1 };
 
 const MAX_POSTS_COLUMNS = 6;
@@ -337,11 +339,12 @@ export default function ContentAggregatorEdit( props ) {
 		// Handles changes to the `operator` property when terms are changed.
 		if ( 'terms' === property ) {
 			const operatorValue =
+				// eslint-disable-next-line no-nested-ternary
 				! taxonomies[ index ].operator && 1 < value.length
 					? 'IN'
 					: 1 < value.length
-					? taxonomies[ index ].operator
-					: undefined;
+						? taxonomies[ index ].operator
+						: undefined;
 
 			taxonomiesUpdate = Object.values( {
 				...taxonomiesUpdate,
@@ -672,9 +675,7 @@ export default function ContentAggregatorEdit( props ) {
 				<ToggleControl
 					label={ __( 'Display featured image' ) }
 					checked={ displayImage }
-					onChange={ ( value ) =>
-						setAttributes( { displayImage: value } )
-					}
+					onChange={ ( value ) => setAttributes( { displayImage: value } ) }
 				/>
 				{ displayImage && (
 					<Fragment>
@@ -751,25 +752,19 @@ export default function ContentAggregatorEdit( props ) {
 					</a>
 				</Disabled>
 				{ displayPostDate && post.date_gmt && (
-					<time
-						dateTime={ format( 'c', post.date_gmt ) }
-						className="wp-block-latest-posts__post-date"
-					>
+					<div className="wp-block-latest-posts__post-date">
 						{ dateI18n(
 							__experimentalGetSettings().formats.date,
 							post.date_gmt
 						) }
-					</time>
+					</div>
 				) }
 				{ displayImage && post.image[ imageSize ] && (
 					<figure className="wp-block-latest-posts__post-thumbnail">
 						{ addLinkToFeaturedImage ? (
 							<Disabled>
 								<a href={ post.link } rel="noreferrer noopener">
-									<img
-										src={ post.image[ imageSize ] }
-										alt=""
-									/>
+									<img src={ post.image[ imageSize ] } alt="" />
 								</a>
 							</Disabled>
 						) : (
@@ -782,13 +777,13 @@ export default function ContentAggregatorEdit( props ) {
 						<RawHTML key="html">
 							{ excerptLength < excerpt.trim().split( ' ' ).length
 								? excerpt
-										.trim()
-										.split( ' ', excerptLength )
-										.join( ' ' ) + '…'
+									.trim()
+									.split( ' ', excerptLength )
+									.join( ' ' ) + '…'
 								: excerpt
-										.trim()
-										.split( ' ', excerptLength )
-										.join( ' ' ) }
+									.trim()
+									.split( ' ', excerptLength )
+									.join( ' ' ) }
 						</RawHTML>
 					</div>
 				) }
