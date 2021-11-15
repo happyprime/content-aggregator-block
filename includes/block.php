@@ -57,7 +57,7 @@ function build_query_args( $attributes ) {
 
 	// If this is a previous version of the block, overwrite
 	// the `customTaxonomy` attribute using the new format.
-	if ( $attributes['termID'] && ! is_array( $attributes['customTaxonomy'] ) ) {
+	if ( ! empty( $attributes['termID'] ) && ! empty( $attributes['customTaxonomy'] ) && ! is_array( $attributes['customTaxonomy'] ) ) {
 		$attributes['customTaxonomy'] = array(
 			array(
 				'slug'  => $attributes['customTaxonomy'],
@@ -69,7 +69,7 @@ function build_query_args( $attributes ) {
 	// Use the new `taxonomies` attribute if available.
 	$taxonomies = ( ! empty( $attributes['taxonomies'] ) )
 		? $attributes['taxonomies']
-		: $attributes['customTaxonomy'];
+		: $attributes['customTaxonomy'] ?? array();
 
 	if ( ! empty( $taxonomies ) ) {
 		$tax_query = array();
