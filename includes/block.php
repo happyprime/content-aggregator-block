@@ -13,6 +13,7 @@ add_action( 'enqueue_block_editor_assets', __NAMESPACE__ . '\enqueue_block_edito
 add_action( 'rest_api_init', __NAMESPACE__ . '\register_posts_endpoint' );
 add_filter( 'post_class', __NAMESPACE__ . '\filter_post_classes', 10, 3 );
 add_action( 'rest_api_init', __NAMESPACE__ . '\register_meta_endpoint' );
+add_filter( 'wp_kses_allowed_html', __NAMESPACE__ . '\allow_additional_html', 10, 2 );
 
 /**
  * Registers the `happyprime/content-aggregator` block on server.
@@ -489,4 +490,29 @@ function meta_rest_response( $request ) {
 	$subtype = $request->get_param( 'post_type' ) ?? 'post';
 
 	return array_keys( $wp_meta_keys['post'][ $subtype ] );
+}
+
+/**
+ * Allow additional HTML elements and attributes that wp_kses_post() normally strips.
+ *
+ * @param array  $allowed The array of allowed HTML tags.
+ * @param string $context The context, such as "post", for the filter.
+ */
+function allow_additional_html( $allowed, $context ) {
+	if ( is_array( $context ) ) {
+		return $allowed;
+	}
+	if ( 'post' === $context ) {
+		// Enable additional tags.
+		$allowed['time'] = array( 'datetime' => true );
+		$allowed['meta'] = array( 'content' => true );
+		// Enable itemprop, itemscope, and itemtype attributes on common tags.
+		$tags_for_atts = array( 'div', 'span', 'p', 'ul', 'ol', 'li', 'a', 'meta' );
+		foreach ( $tags_for_atts as $tag ) {
+			$allowed[ $tag ]['itemprop']  = true;
+			$allowed[ $tag ]['itemscope'] = true;
+			$allowed[ $tag ]['itemtype']  = true;
+		}
+	}
+	return $allowed;
 }
