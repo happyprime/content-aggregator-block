@@ -293,7 +293,10 @@ function render_item( $post, $attributes ) {
 		<?php
 		if ( isset( $attributes['displayPostDate'] ) && $attributes['displayPostDate'] ) {
 			?>
-			<div class="wp-block-latest-posts__post-date"><?php echo esc_html( get_the_date() ); ?></div>
+			<time
+				class="wp-block-latest-posts__post-date"
+				datetime="<?php echo esc_attr( get_the_date( 'c' ) ); ?>"
+			><?php echo esc_html( get_the_date() ); ?></time>
 			<?php
 		}
 		if ( isset( $attributes['displayImage'] ) && $attributes['displayImage'] && has_post_thumbnail() ) {
