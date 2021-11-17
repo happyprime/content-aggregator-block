@@ -513,7 +513,7 @@ function allow_additional_html( $allowed, $context ) {
 		);
 
 		// Enable itemprop, itemscope, and itemtype attributes on common tags.
-		$tags_for_atts = array( 'div', 'span', 'p', 'ul', 'ol', 'li', 'a', 'meta' );
+		$tags_for_atts = array( 'div', 'span', 'p', 'img', 'ul', 'ol', 'li', 'a', 'meta' );
 
 		foreach ( $tags_for_atts as $tag ) {
 			$allowed[ $tag ]['itemprop']  = true;
