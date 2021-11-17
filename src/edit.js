@@ -28,8 +28,9 @@ import {
 import { useSelect } from '@wordpress/data';
 
 import {
-	dateI18n,
 	__experimentalGetSettings, // Used to retrieve date format, watch for deprecation.
+	dateI18n,
+	format,
 } from '@wordpress/date';
 
 import {
@@ -752,12 +753,15 @@ export default function ContentAggregatorEdit( props ) {
 					</a>
 				</Disabled>
 				{ displayPostDate && post.date_gmt && (
-					<div className="wp-block-latest-posts__post-date">
+					<time
+						dateTime={ format( 'c', post.date_gmt ) }
+						className="wp-block-latest-posts__post-date"
+					>
 						{ dateI18n(
 							__experimentalGetSettings().formats.date,
 							post.date_gmt
 						) }
-					</div>
+					</time>
 				) }
 				{ displayImage && post.image[ imageSize ] && (
 					<figure className="wp-block-latest-posts__post-thumbnail">

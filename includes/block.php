@@ -293,7 +293,10 @@ function render_item( $post, $attributes ) {
 		<?php
 		if ( isset( $attributes['displayPostDate'] ) && $attributes['displayPostDate'] ) {
 			?>
-			<div class="wp-block-latest-posts__post-date"><?php echo esc_html( get_the_date() ); ?></div>
+			<time
+				class="wp-block-latest-posts__post-date"
+				datetime="<?php echo esc_attr( get_the_date( 'c' ) ); ?>"
+			><?php echo esc_html( get_the_date() ); ?></time>
 			<?php
 		}
 		if ( isset( $attributes['displayImage'] ) && $attributes['displayImage'] && has_post_thumbnail() ) {
@@ -332,7 +335,7 @@ function render_item( $post, $attributes ) {
 	$html      = ob_get_clean();
 	$item_html = apply_filters( 'content_aggregator_block_item', $html, $post, $attributes );
 
-	echo wp_kses_post( $item_html );
+	echo wp_kses( $item_html, 'hp-cab' );
 }
 
 /**
@@ -499,20 +502,25 @@ function meta_rest_response( $request ) {
  * @param string $context The context, such as "post", for the filter.
  */
 function allow_additional_html( $allowed, $context ) {
-	if ( is_array( $context ) ) {
-		return $allowed;
-	}
-	if ( 'post' === $context ) {
+	if ( 'hp-cab' === $context ) {
+		$allowed = wp_kses_allowed_html( 'post' );
+
 		// Enable additional tags.
-		$allowed['time'] = array( 'datetime' => true );
 		$allowed['meta'] = array( 'content' => true );
+		$allowed['time'] = array(
+			'class'    => true,
+			'datetime' => true,
+		);
+
 		// Enable itemprop, itemscope, and itemtype attributes on common tags.
-		$tags_for_atts = array( 'div', 'span', 'p', 'ul', 'ol', 'li', 'a', 'meta' );
+		$tags_for_atts = array( 'div', 'span', 'p', 'img', 'ul', 'ol', 'li', 'a', 'meta' );
+
 		foreach ( $tags_for_atts as $tag ) {
 			$allowed[ $tag ]['itemprop']  = true;
 			$allowed[ $tag ]['itemscope'] = true;
 			$allowed[ $tag ]['itemtype']  = true;
 		}
 	}
+
 	return $allowed;
 }
