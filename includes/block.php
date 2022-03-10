@@ -477,24 +477,9 @@ function register_meta_endpoint() {
 		array(
 			'methods'             => 'GET',
 			'callback'            => __NAMESPACE__ . '\meta_rest_response',
-			'permission_callback' => __NAMESPACE__ . '\meta_rest_permission',
+			'permission_callback' => '__return_true',
 		)
 	);
-}
-
-/**
- * Return the meta keys registered for the provided post type.
- *
- * @param \WP_Request $request The incoming REST API request object.
- *
- * @return array Posts found using the provided parameters.
- */
-function meta_rest_response( $request ) {
-	global $wp_meta_keys;
-
-	$subtype = $request->get_param( 'post_type' ) ?? 'post';
-
-	return array_keys( $wp_meta_keys['post'][ $subtype ] );
 }
 
 /**
