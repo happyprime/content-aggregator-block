@@ -477,7 +477,7 @@ function register_meta_endpoint() {
 		array(
 			'methods'             => 'GET',
 			'callback'            => __NAMESPACE__ . '\meta_rest_response',
-			'permission_callback' => '__return_true',
+			'permission_callback' => __NAMESPACE__ . '\meta_rest_permission',
 		)
 	);
 }
@@ -495,6 +495,16 @@ function meta_rest_response( $request ) {
 	$subtype = $request->get_param( 'post_type' ) ?? 'post';
 
 	return array_keys( $wp_meta_keys['post'][ $subtype ] );
+}
+
+/**
+ * Make sure only users who can edit posts can access this REST API route.
+ */
+function meta_rest_permission() {
+	if ( ! current_user_can( 'edit-posts' ) ) {
+		return new WP_Error( 'rest_forbidden', esc_html__( 'Sorry, you are not allowed to view this data.' ), array( 'status' => 401 ) );
+	}
+	return true;
 }
 
 /**
