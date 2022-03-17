@@ -367,8 +367,9 @@ function register_posts_endpoint() {
 		'content-aggregator-block/v1',
 		'posts',
 		array(
-			'methods'  => 'GET',
-			'callback' => __NAMESPACE__ . '\posts_rest_response',
+			'methods'             => 'GET',
+			'callback'            => __NAMESPACE__ . '\posts_rest_response',
+			'permission_callback' => '__return_true',
 		)
 	);
 }
@@ -474,8 +475,9 @@ function register_meta_endpoint() {
 		'content-aggregator-block/v1',
 		'meta',
 		array(
-			'methods'  => 'GET',
-			'callback' => __NAMESPACE__ . '\meta_rest_response',
+			'methods'             => 'GET',
+			'callback'            => __NAMESPACE__ . '\meta_rest_response',
+			'permission_callback' => '__return_true',
 		)
 	);
 }
