@@ -1,11 +1,5 @@
 <?php
 /**
- * The main plugin file.
- *
- * @package content-aggregator-block
- */
-
-/**
  * Plugin Name: Content Aggregator Block
  * Plugin URI:  https://github.com/happyprime/content-aggregator-block/
  * Description: Display the latest posts for a specified post type, taxonomy, and term.
