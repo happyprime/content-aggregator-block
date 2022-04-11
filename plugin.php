@@ -1,18 +1,14 @@
 <?php
 /**
- * The main plugin file.
- *
- * @package content-aggregator-block
- */
-
-/**
  * Plugin Name: Content Aggregator Block
- * Plugin URI:  https://github.com/happyprime/content-aggregator-block/
+ * Plugin URI: https://github.com/happyprime/content-aggregator-block/
  * Description: Display the latest posts for a specified post type, taxonomy, and term.
- * Version:     0.3.1
- * Author:      Happy Prime
- * Author URI:  https://happyprime.co/
- * License:     GPL2
+ * Version: 0.3.1
+ * Author: Happy Prime
+ * Author URI: https://happyprime.co/
+ * Requires at least: 5.9
+ * Requires PHP: 7.2
+ * License: GPL2
  * License URI: https://www.gnu.org/licenses/gpl-2.0.html
  */
 
