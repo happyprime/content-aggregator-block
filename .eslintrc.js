@@ -1,24 +1,14 @@
-/* global module */
 module.exports = {
-	extends: [
-		'plugin:@wordpress/eslint-plugin/esnext',
-		'plugin:@wordpress/eslint-plugin/jsx-a11y',
-		'plugin:@wordpress/eslint-plugin/react',
-	],
+	extends: [ 'plugin:@wordpress/eslint-plugin/recommended' ],
 	env: {
 		browser: true,
 	},
-	globals: {
-		wp: true,
-	},
-	ignorePatterns: ['.*.js', 'build/*.js'],
-	parser: 'babel-eslint',
+	ignorePatterns: [
+		'.*.js',
+		'*.config.js',
+		'**/build/*.js',
+	],
 	rules: {
-		'no-console': ['warn', { allow: ['error'] }],
-	},
-	settings: {
-		react: {
-			version: 'detect',
-		},
+		'no-console': [ 'warn', { allow: [ 'error' ] } ],
 	},
 };
