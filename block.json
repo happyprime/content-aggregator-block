@@ -24,16 +24,6 @@
 			"type": "integer",
 			"default": 3
 		},
-		"metaQuery": {
-			"type": "array",
-			"items": {
-				"type": "object"
-			}
-		},
-		"metaRelation": {
-			"type": "string",
-			"default": ""
-		},
 		"order": {
 			"type": "string",
 			"default": "desc"
@@ -41,14 +31,6 @@
 		"orderBy": {
 			"type": "string",
 			"default": "date"
-		},
-		"orderByMetaKey": {
-			"type": "string",
-			"default": ""
-		},
-		"orderByMetaOrder": {
-			"type": "string",
-			"default": ""
 		},
 		"displayPostDate": {
 			"type": "boolean",

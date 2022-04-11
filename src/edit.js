@@ -58,10 +58,6 @@ import { addQueryArgs } from '@wordpress/url';
 // Internal dependencies.
 import TermSelect from './term-select';
 
-import MetaOrderControl from './meta-order-control';
-
-import MetaQueryControl from './meta-query-control';
-
 import './editor.scss';
 
 // Module constants.
@@ -88,12 +84,8 @@ export default function ContentAggregatorEdit( props ) {
 		excerptLength,
 		imageSize,
 		itemCount,
-		metaQuery,
-		metaRelation,
 		order,
 		orderBy,
-		orderByMetaKey,
-		orderByMetaOrder,
 		postContent,
 		postLayout,
 		stickyPosts,
@@ -198,11 +190,6 @@ export default function ContentAggregatorEdit( props ) {
 			orderby: orderBy,
 		};
 
-		if ( 'meta_value' === orderBy && orderByMetaKey ) {
-			postsFetchData.meta_key = orderByMetaKey;
-			postsFetchData.order = orderByMetaOrder;
-		}
-
 		if ( cabStickyPostSupport.includes( postTypeSlug ) && stickyPosts ) {
 			postsFetchData.sticky_posts = true;
 		}
@@ -212,14 +199,6 @@ export default function ContentAggregatorEdit( props ) {
 
 			if ( taxRelation ) {
 				postsFetchData.tax_relation = taxRelation;
-			}
-		}
-
-		if ( metaQuery ) {
-			postsFetchData.meta_query = metaQuery;
-
-			if ( metaRelation ) {
-				postsFetchData.meta_relation = metaRelation;
 			}
 		}
 
@@ -264,12 +243,8 @@ export default function ContentAggregatorEdit( props ) {
 		};
 	}, [
 		itemCount,
-		metaQuery,
-		metaRelation,
 		order,
 		orderBy,
-		orderByMetaKey,
-		orderByMetaOrder,
 		postTypeSlug,
 		stickyPosts,
 		taxonomies,
@@ -532,10 +507,6 @@ export default function ContentAggregatorEdit( props ) {
 							label: __( 'Random' ),
 							value: 'rand/desc',
 						},
-						{
-							label: __( 'Meta Value' ),
-							value: 'meta_value/desc',
-						},
 					] }
 					onChange={ ( value ) => {
 						const [ newOrderBy, newOrder ] = value.split( '/' );
@@ -554,7 +525,6 @@ export default function ContentAggregatorEdit( props ) {
 						}
 					} }
 				/>
-				{ 'meta_value' === orderBy && <MetaOrderControl blockProps={ props } /> }
 				{ cabStickyPostSupport.includes( customPostType.split( ',' )[ 0 ] ) &&
 					'date' === orderBy && (
 					<ToggleControl
@@ -623,7 +593,6 @@ export default function ContentAggregatorEdit( props ) {
 						</div>
 					) }
 				</div>
-				<MetaQueryControl blockProps={ props } />
 			</PanelBody>
 			<PanelBody
 				title={ __( 'Post Template' ) }

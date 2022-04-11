@@ -12,7 +12,6 @@ add_action( 'init', __NAMESPACE__ . '\register_block' );
 add_action( 'enqueue_block_editor_assets', __NAMESPACE__ . '\enqueue_block_editor_assets' );
 add_action( 'rest_api_init', __NAMESPACE__ . '\register_posts_endpoint' );
 add_filter( 'post_class', __NAMESPACE__ . '\filter_post_classes', 10, 3 );
-add_action( 'rest_api_init', __NAMESPACE__ . '\register_meta_endpoint' );
 add_filter( 'wp_kses_allowed_html', __NAMESPACE__ . '\allow_additional_html', 10, 2 );
 
 /**
@@ -47,14 +46,6 @@ function build_query_args( $attributes ) {
 		'post_status'    => 'publish',
 		'fields'         => 'ids',
 	);
-
-	if ( 'meta_value' === $attributes['orderBy'] && $attributes['orderByMetaKey'] ) {
-		$args['meta_key'] = $attributes['orderByMetaKey']; // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key
-
-		if ( $attributes['orderByMetaOrder'] ) {
-			$args['order'] = $attributes['orderByMetaOrder'];
-		}
-	}
 
 	// If this is a previous version of the block, overwrite
 	// the `customTaxonomy` attribute using the new format.
@@ -102,26 +93,6 @@ function build_query_args( $attributes ) {
 		}
 
 		$args['tax_query'] = $tax_query; // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_tax_query
-	}
-
-	// Add meta query parameters.
-	if ( ! empty( $attributes['metaQuery'] ) ) {
-		$meta_query = array();
-
-		if ( '' !== $attributes['metaRelation'] ) {
-			$meta_query['relation'] = $attributes['metaRelation'];
-		}
-
-		foreach ( $attributes['metaQuery'] as $meta ) {
-			$meta_query[] = array(
-				'key'     => $meta['key'],
-				'value'   => wp_date( 'Y-m-d H:i:s' ), // 2021-11-12 13:00:00
-				'compare' => $meta['compare'],
-				'type'    => $meta['type'],
-			);
-		}
-
-		$args['meta_query'] = $meta_query; // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
 	}
 
 	// Add arguments to account for sticky posts if appropriate.
@@ -389,9 +360,7 @@ function posts_rest_response( $request ) {
 		'itemCount'      => $request->get_param( 'per_page' ) ?? 3,
 		'order'          => $request->get_param( 'order' ) ?? 'desc',
 		'orderBy'        => $request->get_param( 'orderby' ) ?? 'date',
-		'orderByMetaKey' => $request->get_param( 'meta_key' ) ?? '',
 		'stickyPosts'    => $request->get_param( 'sticky_posts' ) ? true : false,
-		'metaQuery'      => $request->get_param( 'meta_query' ) ?? array(),
 	);
 	$args       = build_query_args( $attributes );
 	$query      = new \WP_Query( $args );
@@ -465,36 +434,6 @@ function filter_post_classes( $classes, $class, $post_id ) {
 	}
 
 	return $classes;
-}
-
-/**
- * Register `meta` endpoint for fetching keys registered for a given post type.
- */
-function register_meta_endpoint() {
-	register_rest_route(
-		'content-aggregator-block/v1',
-		'meta',
-		array(
-			'methods'             => 'GET',
-			'callback'            => __NAMESPACE__ . '\meta_rest_response',
-			'permission_callback' => '__return_true',
-		)
-	);
-}
-
-/**
- * Return the meta keys registered for the provided post type.
- *
- * @param \WP_Request $request The incoming REST API request object.
- *
- * @return array Posts found using the provided parameters.
- */
-function meta_rest_response( $request ) {
-	global $wp_meta_keys;
-
-	$subtype = $request->get_param( 'post_type' ) ?? 'post';
-
-	return array_keys( $wp_meta_keys['post'][ $subtype ] );
 }
 
 /**
