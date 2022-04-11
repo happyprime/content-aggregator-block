@@ -1,4 +1,4 @@
-// WordPress dependencies
+// WordPress dependencies.
 import { createBlock } from '@wordpress/blocks';
 
 const transforms = {

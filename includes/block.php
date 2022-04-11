@@ -19,7 +19,7 @@ add_filter( 'wp_kses_allowed_html', __NAMESPACE__ . '\allow_additional_html', 10
  */
 function register_block() {
 	register_block_type_from_metadata(
-		dirname( __DIR__ ),
+		dirname( __DIR__ ) . '/blocks/content-aggregator/',
 		array(
 			'render_callback' => __NAMESPACE__ . '\render',
 		)

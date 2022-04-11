@@ -83,6 +83,6 @@
 		"align": true,
 		"html": false
 	},
-	"editorScript": "file:./build/index.js",
-	"editorStyle": "file:./build/index.css"
+	"editorScript": "file:../../build/content-aggregator.js",
+	"editorStyle": "file:../../build/content-aggregator.css"
 }
