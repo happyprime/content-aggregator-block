@@ -4,12 +4,14 @@ import { registerBlockType } from '@wordpress/blocks';
 import { SVG, Path } from '@wordpress/primitives';
 
 // Internal dependencies
+import metadata from './block.json';
+
 import edit from './edit';
 
 import transforms from './transforms';
 
 // Block registration
-registerBlockType( 'happyprime/content-aggregator', {
+registerBlockType(metadata, {
 	icon: (
 		<SVG viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
 			<Path d="M11 7h6v2h-6zM11 11h6v2h-6zM11 15h6v2h-6zM7 7h2v2H7zM7 11h2v2H7zM7 15h2v2H7z" />
@@ -20,4 +22,4 @@ registerBlockType( 'happyprime/content-aggregator', {
 	transforms,
 
 	edit,
-} );
+});

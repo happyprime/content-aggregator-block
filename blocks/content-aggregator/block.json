@@ -1,4 +1,5 @@
 {
+	"$schema": "https://json.schemastore.org/block.json",
 	"apiVersion": 2,
 	"name": "happyprime/content-aggregator",
 	"title": "Content Aggregator",
@@ -24,16 +25,6 @@
 			"type": "integer",
 			"default": 3
 		},
-		"metaQuery": {
-			"type": "array",
-			"items": {
-				"type": "object"
-			}
-		},
-		"metaRelation": {
-			"type": "string",
-			"default": ""
-		},
 		"order": {
 			"type": "string",
 			"default": "desc"
@@ -41,14 +32,6 @@
 		"orderBy": {
 			"type": "string",
 			"default": "date"
-		},
-		"orderByMetaKey": {
-			"type": "string",
-			"default": ""
-		},
-		"orderByMetaOrder": {
-			"type": "string",
-			"default": ""
 		},
 		"displayPostDate": {
 			"type": "boolean",
@@ -100,6 +83,6 @@
 		"align": true,
 		"html": false
 	},
-	"editorScript": "file:./build/index.js",
-	"editorStyle": "file:./build/index.css"
+	"editorScript": "file:../../build/content-aggregator.js",
+	"editorStyle": "file:../../build/content-aggregator.css"
 }
