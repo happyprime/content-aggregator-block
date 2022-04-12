@@ -300,7 +300,7 @@ export default function ContentAggregatorEdit(props) {
 	const updatedTaxonomies = (index, property, value) => {
 		let taxonomiesUpdate;
 
-		if ('undefined' !== typeof taxonomies && taxonomies.length) {
+		if (taxonomies?.length) {
 			taxonomiesUpdate = Object.values({
 				...taxonomies,
 				[index]: {
@@ -313,7 +313,7 @@ export default function ContentAggregatorEdit(props) {
 		// Initialize a new array for taxonomy settings if none exist,
 		// otherwise reset the other properties if the slug of an existing setting is changed.
 		if ('slug' === property) {
-			if ('undefined' === typeof taxonomies || !taxonomies.length) {
+			if (!taxonomies?.length) {
 				taxonomiesUpdate = [
 					{
 						slug: value,
@@ -335,13 +335,9 @@ export default function ContentAggregatorEdit(props) {
 
 		// Handles changes to the `operator` property when terms are changed.
 		if ('terms' === property) {
-			const operatorValue =
-				// eslint-disable-next-line no-nested-ternary
-				!taxonomies[index].operator && 1 < value.length
-					? 'IN'
-					: 1 < value.length
-					? taxonomies[index].operator
-					: undefined;
+			const operatorValue = !taxonomies[index].operator
+				? 'IN'
+				: taxonomies[index].operator;
 
 			taxonomiesUpdate = Object.values({
 				...taxonomiesUpdate,
@@ -363,6 +359,34 @@ export default function ContentAggregatorEdit(props) {
 	 * @return {WPElement} Element to render.
 	 */
 	const taxonomySetting = (taxonomy, index) => {
+		const termOperatorOptions =
+			1 < taxonomy?.terms?.length
+				? [
+						{
+							label: __('With any selected terms'),
+							value: 'IN',
+						},
+						{
+							label: __('With all selected terms'),
+							value: 'AND',
+						},
+						{
+							label: __('Without the selected terms'),
+							value: 'NOT IN',
+						},
+				  ]
+				: [
+						{
+							label: __('With the selected term'),
+							value: 'IN',
+						},
+						{
+							label: __('Without the selected term'),
+							value: 'NOT IN',
+						},
+				  ];
+
+
 		return (
 			<div className="happyprime-block-cab_taxonomy-setting-wrapper">
 				{0 < index && (
@@ -425,24 +449,11 @@ export default function ContentAggregatorEdit(props) {
 							taxonomy={taxonomy.slug}
 						/>
 					)}
-					{taxonomy.terms && 1 < taxonomy.terms.length && (
+					{taxonomy.slug !== '' && (
 						<RadioControl
 							label={__('Show posts:')}
 							selected={taxonomy.operator}
-							options={[
-								{
-									label: __('With any selected terms'),
-									value: 'IN',
-								},
-								{
-									label: __('With all selected terms'),
-									value: 'AND',
-								},
-								{
-									label: __('Without the selected terms'),
-									value: 'NOT IN',
-								},
-							]}
+							options={termOperatorOptions}
 							onChange={(value) =>
 								setAttributes({
 									taxonomies: updatedTaxonomies(
@@ -569,15 +580,13 @@ export default function ContentAggregatorEdit(props) {
 			<PanelBody title={__('Filters')} className="happyprime-block-cab">
 				<div className="happyprime-block-cab_taxonomy-settings">
 					<p>{__('Taxonomies')}</p>
-					{taxonomies && 0 < taxonomies.length
+					{0 < taxonomies?.length
 						? taxonomies.map((taxonomy, index) =>
 								taxonomySetting(taxonomy, index)
 						  )
 						: taxonomySetting(TAXONOMY_SETTING, 0)}
-					{taxonomies &&
-						0 < taxonomies.length &&
-						taxonomies[0].terms &&
-						0 < taxonomies[0].terms.length && (
+					{0 < taxonomies?.length &&
+						0 < taxonomies[0]?.terms?.length && (
 							<Button
 								className="happyprime-block-cab_taxonomy-add-setting"
 								icon={plusCircle}
@@ -596,7 +605,7 @@ export default function ContentAggregatorEdit(props) {
 								text={__('Add more taxonomy settings')}
 							/>
 						)}
-					{taxonomies && 1 < taxonomies.length && (
+					{1 < taxonomies?.length && (
 						<div className="happyprime-block-cab_taxonomy-relation">
 							<p>{__('Taxonomy Settings Relationship')}</p>
 							<RadioControl
