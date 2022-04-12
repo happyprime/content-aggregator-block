@@ -73,6 +73,9 @@
 			"type": "boolean",
 			"default": false
 		},
+		"authors": {
+			"type": "string"
+		},
 		"customTaxonomy": {},
 		"termID": {
 			"type": "number",

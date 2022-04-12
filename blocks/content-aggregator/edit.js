@@ -56,6 +56,8 @@ import {
 import { addQueryArgs } from '@wordpress/url';
 
 // Internal dependencies.
+import AuthorControl from './author-control';
+
 import TermSelect from './term-select';
 
 import './editor.scss';
@@ -76,6 +78,7 @@ export default function ContentAggregatorEdit(props) {
 
 	const {
 		addLinkToFeaturedImage,
+		authors,
 		columns,
 		customPostType,
 		displayImage,
@@ -194,6 +197,10 @@ export default function ContentAggregatorEdit(props) {
 			postsFetchData.sticky_posts = true;
 		}
 
+		if (authors) {
+			postsFetchData.authors = authors;
+		}
+
 		if (taxonomies) {
 			postsFetchData.taxonomies = taxonomies;
 
@@ -242,6 +249,7 @@ export default function ContentAggregatorEdit(props) {
 			isStillMounted.current = false;
 		};
 	}, [
+		authors,
 		itemCount,
 		order,
 		orderBy,
@@ -593,6 +601,10 @@ export default function ContentAggregatorEdit(props) {
 						</div>
 					)}
 				</div>
+				<AuthorControl
+					onChange={(value) => setAttributes({ authors: value })}
+					value={authors}
+				/>
 			</PanelBody>
 			<PanelBody
 				title={__('Post Template')}

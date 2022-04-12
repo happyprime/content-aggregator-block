@@ -95,6 +95,10 @@ function build_query_args( $attributes ) {
 		$args['tax_query'] = $tax_query; // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_tax_query
 	}
 
+	if ( $attributes['authors'] ) {
+		$args['author'] = $attributes['authors'];
+	}
+
 	// Add arguments to account for sticky posts if appropriate.
 	if ( $attributes['stickyPosts'] && is_array( $sticky_posts ) && ! empty( $sticky_posts ) && 'date' === $attributes['orderBy'] ) {
 		// Copy the arguments that have been built out so far.
@@ -182,6 +186,7 @@ function render( $attributes ) {
 		'displayImage'       => false,
 		'imageSize'          => 'thumbnail',
 		'stickyPosts'        => true,
+		'authors'            => '',
 	);
 	$attributes = wp_parse_args( $attributes, $defaults );
 	$args       = build_query_args( $attributes );
@@ -354,6 +359,7 @@ function register_posts_endpoint() {
  */
 function posts_rest_response( $request ) {
 	$attributes = array(
+		'authors'        => $request->get_param( 'authors' ) ?? '',
 		'customPostType' => $request->get_param( 'post_type' ) ?? 'post,posts',
 		'taxonomies'     => $request->get_param( 'taxonomies' ) ?? array(),
 		'taxRelation'    => $request->get_param( 'tax_relation' ) ?? '',
