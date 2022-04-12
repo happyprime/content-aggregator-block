@@ -76,6 +76,10 @@
 		"authors": {
 			"type": "string"
 		},
+		"displayPostAuthor": {
+			"type": "boolean",
+			"default": false
+		},
 		"customTaxonomy": {},
 		"termID": {
 			"type": "number",

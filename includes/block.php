@@ -187,6 +187,7 @@ function render( $attributes ) {
 		'imageSize'          => 'thumbnail',
 		'stickyPosts'        => true,
 		'authors'            => '',
+		'displayPostAuthor'  => false,
 	);
 	$attributes = wp_parse_args( $attributes, $defaults );
 	$args       = build_query_args( $attributes );
@@ -212,6 +213,10 @@ function render( $attributes ) {
 
 	if ( isset( $attributes['displayPostDate'] ) && $attributes['displayPostDate'] ) {
 		$container_class .= ' cab-has-post-date';
+	}
+
+	if ( ! empty( $attributes['displayPostAuthor'] ) ) {
+		$container_class .= ' cab-has-post-author';
 	}
 
 	if ( isset( $attributes['displayPostContent'] ) && $attributes['displayPostContent'] && isset( $attributes['postContent'] ) ) {
@@ -267,6 +272,13 @@ function render_item( $post, $attributes ) {
 	<li <?php post_class( 'cab-item' ); ?>>
 		<a href="<?php the_permalink(); ?>"><?php the_title(); ?></a>
 		<?php
+		if ( ! empty( $attributes['displayPostAuthor'] ) ) {
+			?>
+			<div class="wp-block-latest-posts__post-author">
+				<span class="byline">By <span class="author"><?php echo esc_html( get_the_author() ); ?></span></span>
+			</div>
+			<?php
+		}
 		if ( isset( $attributes['displayPostDate'] ) && $attributes['displayPostDate'] ) {
 			?>
 			<time
@@ -399,6 +411,7 @@ function posts_rest_response( $request ) {
 				'content'  => get_the_content(),
 				'excerpt'  => wp_strip_all_tags( get_the_excerpt(), true ),
 				'image'    => $image_sizes,
+				'author'   => get_the_author(),
 			);
 
 			$post = apply_filters( 'content_aggregator_block_endpoint_post_data', $post, get_the_ID() );

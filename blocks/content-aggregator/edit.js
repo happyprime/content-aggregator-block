@@ -82,6 +82,7 @@ export default function ContentAggregatorEdit(props) {
 		columns,
 		customPostType,
 		displayImage,
+		displayPostAuthor,
 		displayPostContent,
 		displayPostDate,
 		excerptLength,
@@ -267,6 +268,7 @@ export default function ContentAggregatorEdit(props) {
 			'happyprime-block-cab_error': !hasPosts,
 			'cab-has-post-thumbnail': displayImage,
 			'cab-has-post-date': displayPostDate,
+			'cab-has-post-author': displayPostAuthor,
 			'cab-has-post-content':
 				displayPostContent && postContent === 'full_post',
 			'cab-has-post-excerpt':
@@ -618,6 +620,13 @@ export default function ContentAggregatorEdit(props) {
 					}
 				/>
 				<ToggleControl
+					label={__('Display post author')}
+					checked={displayPostAuthor}
+					onChange={(value) =>
+						setAttributes({ displayPostAuthor: value })
+					}
+				/>
+				<ToggleControl
 					label={__('Display post content')}
 					checked={displayPostContent}
 					onChange={(value) =>
@@ -733,6 +742,13 @@ export default function ContentAggregatorEdit(props) {
 						)}
 					</a>
 				</Disabled>
+				{displayPostAuthor && post.author && (
+					<div className="wp-block-latest-posts__post-author">
+						<span className="byline">
+							By <span clasNames="author">{post.author}</span>
+						</span>
+					</div>
+				)}
 				{displayPostDate && post.date_gmt && (
 					<time
 						dateTime={format('c', post.date_gmt)}
