@@ -73,6 +73,13 @@
 			"type": "boolean",
 			"default": false
 		},
+		"authors": {
+			"type": "string"
+		},
+		"displayPostAuthor": {
+			"type": "boolean",
+			"default": false
+		},
 		"orderByMetaKey": {
 			"type": "string",
 			"default": ""

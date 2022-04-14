@@ -56,6 +56,8 @@ import {
 import { addQueryArgs } from '@wordpress/url';
 
 // Internal dependencies.
+import AuthorControl from './author-control';
+
 import MetaOrderControl from './meta-order-control';
 
 import TermSelect from './term-select';
@@ -78,9 +80,11 @@ export default function ContentAggregatorEdit(props) {
 
 	const {
 		addLinkToFeaturedImage,
+		authors,
 		columns,
 		customPostType,
 		displayImage,
+		displayPostAuthor,
 		displayPostContent,
 		displayPostDate,
 		excerptLength,
@@ -203,6 +207,10 @@ export default function ContentAggregatorEdit(props) {
 			postsFetchData.sticky_posts = true;
 		}
 
+		if (authors) {
+			postsFetchData.authors = authors;
+		}
+
 		if (taxonomies) {
 			postsFetchData.taxonomies = taxonomies;
 
@@ -251,6 +259,7 @@ export default function ContentAggregatorEdit(props) {
 			isStillMounted.current = false;
 		};
 	}, [
+		authors,
 		itemCount,
 		order,
 		orderBy,
@@ -270,6 +279,7 @@ export default function ContentAggregatorEdit(props) {
 			'happyprime-block-cab_error': !hasPosts,
 			'cab-has-post-thumbnail': displayImage,
 			'cab-has-post-date': displayPostDate,
+			'cab-has-post-author': displayPostAuthor,
 			'cab-has-post-content':
 				displayPostContent && postContent === 'full_post',
 			'cab-has-post-excerpt':
@@ -611,6 +621,10 @@ export default function ContentAggregatorEdit(props) {
 						</div>
 					)}
 				</div>
+				<AuthorControl
+					onChange={(value) => setAttributes({ authors: value })}
+					value={authors}
+				/>
 			</PanelBody>
 			<PanelBody
 				title={__('Post Template')}
@@ -621,6 +635,13 @@ export default function ContentAggregatorEdit(props) {
 					checked={displayPostDate}
 					onChange={(value) =>
 						setAttributes({ displayPostDate: value })
+					}
+				/>
+				<ToggleControl
+					label={__('Display post author')}
+					checked={displayPostAuthor}
+					onChange={(value) =>
+						setAttributes({ displayPostAuthor: value })
 					}
 				/>
 				<ToggleControl
@@ -739,6 +760,13 @@ export default function ContentAggregatorEdit(props) {
 						)}
 					</a>
 				</Disabled>
+				{displayPostAuthor && post.author && (
+					<div className="wp-block-latest-posts__post-author">
+						<span className="byline">
+							By <span clasNames="author">{post.author}</span>
+						</span>
+					</div>
+				)}
 				{displayPostDate && post.date_gmt && (
 					<time
 						dateTime={format('c', post.date_gmt)}
