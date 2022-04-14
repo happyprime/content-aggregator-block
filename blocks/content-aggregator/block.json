@@ -73,6 +73,14 @@
 			"type": "boolean",
 			"default": false
 		},
+		"orderByMetaKey": {
+			"type": "string",
+			"default": ""
+		},
+		"orderByMetaOrder": {
+			"type": "string",
+			"default": ""
+		},
 		"customTaxonomy": {},
 		"termID": {
 			"type": "number",
