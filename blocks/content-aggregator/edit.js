@@ -56,6 +56,8 @@ import {
 import { addQueryArgs } from '@wordpress/url';
 
 // Internal dependencies.
+import MetaOrderControl from './meta-order-control';
+
 import TermSelect from './term-select';
 
 import './editor.scss';
@@ -86,6 +88,8 @@ export default function ContentAggregatorEdit(props) {
 		itemCount,
 		order,
 		orderBy,
+		orderByMetaKey,
+		orderByMetaOrder,
 		postContent,
 		postLayout,
 		stickyPosts,
@@ -190,6 +194,11 @@ export default function ContentAggregatorEdit(props) {
 			orderby: orderBy,
 		};
 
+		if ('meta_value' === orderBy && orderByMetaKey) {
+			postsFetchData.meta_key = orderByMetaKey;
+			postsFetchData.order = orderByMetaOrder;
+		}
+
 		if (cabStickyPostSupport.includes(postTypeSlug) && stickyPosts) {
 			postsFetchData.sticky_posts = true;
 		}
@@ -245,6 +254,8 @@ export default function ContentAggregatorEdit(props) {
 		itemCount,
 		order,
 		orderBy,
+		orderByMetaKey,
+		orderByMetaOrder,
 		postTypeSlug,
 		stickyPosts,
 		taxonomies,
@@ -507,6 +518,10 @@ export default function ContentAggregatorEdit(props) {
 							label: __('Random'),
 							value: 'rand/desc',
 						},
+						{
+							label: __('Meta Value'),
+							value: 'meta_value/desc',
+						},
 					]}
 					onChange={(value) => {
 						const [newOrderBy, newOrder] = value.split('/');
@@ -525,6 +540,9 @@ export default function ContentAggregatorEdit(props) {
 						}
 					}}
 				/>
+				{'meta_value' === orderBy && (
+					<MetaOrderControl blockProps={props} />
+				)}
 				{cabStickyPostSupport.includes(customPostType.split(',')[0]) &&
 					'date' === orderBy && (
 						<ToggleControl
