@@ -64,6 +64,18 @@
 	padding-top: 0;
 }
 
+.happyprime-block-cab_meta-order- {
+
+	&settings {
+		padding: 0 12px 16px 32px;
+
+		.components-base-control {
+			margin-bottom: 12px;
+		}
+	}
+
+}
+
 .happyprime-block-cab_error .components-spinner {
 	float: none;
 }
