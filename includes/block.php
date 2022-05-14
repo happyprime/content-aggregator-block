@@ -246,25 +246,36 @@ function render( $attributes ) {
 
 	$wrapper_attributes = get_block_wrapper_attributes( array( 'class' => $container_class ) );
 
+	/**
+	 * Filter the wrapping element for the block.
+	 *
+	 * @param string $wrapper    The HTML element name with which to wrap the block. Default ul.
+	 * @param array  $attributes A list of block attributes.
+	 */
+	$wrapper = apply_filters( 'content_aggregator_block_wrapper', 'ul', $attributes );
+
 	ob_start();
-	?>
-	<ul <?php echo $wrapper_attributes; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>>
-		<?php
-		if ( $query->have_posts() ) {
-			while ( $query->have_posts() ) {
-				$query->the_post();
-				$post = get_post( get_the_ID() );
-				render_item( $post, $attributes );
-			}
-		} else {
-			?>
-			<li><?php esc_html_e( 'No current items' ); ?></li>
-			<?php
+
+	if ( '' !== $wrapper ) {
+		echo '<' . $wrapper . ' ' . $wrapper_attributes . '>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+	}
+
+	if ( $query->have_posts() ) {
+		while ( $query->have_posts() ) {
+			$query->the_post();
+			$post = get_post( get_the_ID() );
+			render_item( $post, $attributes );
 		}
-		wp_reset_postdata();
+	} else {
 		?>
-	</ul>
-	<?php
+		<li><?php esc_html_e( 'No current items' ); ?></li>
+		<?php
+	}
+	wp_reset_postdata();
+
+	if ( '' !== $wrapper ) {
+		echo '</' . $wrapper . '>';
+	}
 
 	$html = ob_get_clean();
 
