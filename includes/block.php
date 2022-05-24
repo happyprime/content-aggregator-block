@@ -10,95 +10,19 @@ namespace HappyPrime\ContentAggregator\Block;
 
 add_action( 'init', __NAMESPACE__ . '\register_block' );
 add_action( 'enqueue_block_editor_assets', __NAMESPACE__ . '\enqueue_block_editor_assets' );
-add_action( 'rest_api_init', __NAMESPACE__ . '\register_route' );
-add_filter( 'block_editor_settings', __NAMESPACE__ . '\image_size_options', 10, 1 );
+add_action( 'rest_api_init', __NAMESPACE__ . '\register_posts_endpoint' );
+add_action( 'rest_api_init', __NAMESPACE__ . '\register_meta_endpoint' );
 add_filter( 'post_class', __NAMESPACE__ . '\filter_post_classes', 10, 3 );
-
-/**
- * Provide a block version number for scripts.
- *
- * @return string The version number.
- */
-function block_version() {
-	return '0.3.0';
-}
+add_filter( 'wp_kses_allowed_html', __NAMESPACE__ . '\allow_additional_html', 10, 2 );
 
 /**
  * Registers the `happyprime/content-aggregator` block on server.
  */
 function register_block() {
-	register_block_type(
-		'happyprime/content-aggregator',
+	register_block_type_from_metadata(
+		dirname( __DIR__ ) . '/blocks/content-aggregator/',
 		array(
-			'attributes'      => array(
-				'customPostType'     => array(
-					'type'    => 'string',
-					'default' => 'post,posts',
-				),
-				'taxonomies'         => array(
-					'type'    => 'array',
-					'default' => array(),
-				),
-				'taxRelation'        => array(
-					'type'    => 'string',
-					'default' => '',
-				),
-				'itemCount'          => array(
-					'type'    => 'integer',
-					'default' => 3,
-				),
-				'order'              => array(
-					'type'    => 'string',
-					'default' => 'desc',
-				),
-				'orderBy'            => array(
-					'type'    => 'string',
-					'default' => 'date',
-				),
-				'displayPostDate'    => array(
-					'type'    => 'boolean',
-					'default' => false,
-				),
-				'postLayout'         => array(
-					'type'    => 'string',
-					'default' => 'list',
-				),
-				'columns'            => array(
-					'type'    => 'integer',
-					'default' => 2,
-				),
-				'displayPostContent' => array(
-					'type'    => 'boolean',
-					'default' => false,
-				),
-				'postContent'        => array(
-					'type'    => 'string',
-					'default' => 'excerpt',
-				),
-				'excerptLength'      => array(
-					'type'    => 'number',
-					'default' => 55,
-				),
-				'displayImage'       => array(
-					'type'    => 'boolean',
-					'default' => false,
-				),
-				'imageSize'          => array(
-					'type'    => 'string',
-					'default' => 'thumbnail',
-				),
-				'stickyPosts'        => array(
-					'type'    => 'boolean',
-					'default' => true,
-				),
-				// Deprecated.
-				'customTaxonomy'     => array(),
-				'termID'             => array(
-					'type'    => 'integer',
-					'default' => 0,
-				),
-			),
-			'render_callback' => __NAMESPACE__ . '\render_block',
+			'render_callback' => __NAMESPACE__ . '\render',
 		)
 	);
 }
@@ -124,9 +48,17 @@ function build_query_args( $attributes ) {
 		'fields'         => 'ids',
 	);
 
+	if ( 'meta_value' === $attributes['orderBy'] && $attributes['orderByMetaKey'] ) {
+		$args['meta_key'] = $attributes['orderByMetaKey']; // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key
+
+		if ( $attributes['orderByMetaOrder'] ) {
+			$args['order'] = $attributes['orderByMetaOrder'];
+		}
+	}
+
 	// If this is a previous version of the block, overwrite
 	// the `customTaxonomy` attribute using the new format.
-	if ( $attributes['termID'] && ! is_array( $attributes['customTaxonomy'] ) ) {
+	if ( ! empty( $attributes['termID'] ) && ! empty( $attributes['customTaxonomy'] ) && ! is_array( $attributes['customTaxonomy'] ) ) {
 		$attributes['customTaxonomy'] = array(
 			array(
 				'slug'  => $attributes['customTaxonomy'],
@@ -138,7 +70,7 @@ function build_query_args( $attributes ) {
 	// Use the new `taxonomies` attribute if available.
 	$taxonomies = ( ! empty( $attributes['taxonomies'] ) )
 		? $attributes['taxonomies']
-		: $attributes['customTaxonomy'];
+		: $attributes['customTaxonomy'] ?? array();
 
 	if ( ! empty( $taxonomies ) ) {
 		$tax_query = array();
@@ -170,6 +102,10 @@ function build_query_args( $attributes ) {
 		}
 
 		$args['tax_query'] = $tax_query; // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_tax_query
+	}
+
+	if ( $attributes['authors'] ) {
+		$args['author'] = $attributes['authors'];
 	}
 
 	// Add arguments to account for sticky posts if appropriate.
@@ -240,7 +176,7 @@ function build_query_args( $attributes ) {
  *
  * @return string HTML
  */
-function render_block( $attributes ) {
+function render( $attributes ) {
 	$defaults   = array(
 		'customPostType'     => 'post,posts',
 		'taxonomies'         => array(),
@@ -248,6 +184,8 @@ function render_block( $attributes ) {
 		'itemCount'          => 3,
 		'order'              => 'desc',
 		'orderBy'            => 'date',
+		'orderByMetaKey'     => '',
+		'orderByMetaOrder'   => '',
 		'displayPostDate'    => false,
 		'postLayout'         => 'list',
 		'columns'            => 2,
@@ -259,6 +197,8 @@ function render_block( $attributes ) {
 		'displayImage'       => false,
 		'imageSize'          => 'thumbnail',
 		'stickyPosts'        => true,
+		'authors'            => '',
+		'displayPostAuthor'  => false,
 	);
 	$attributes = wp_parse_args( $attributes, $defaults );
 	$args       = build_query_args( $attributes );
@@ -278,75 +218,134 @@ function render_block( $attributes ) {
 		$container_class .= ' columns-' . $attributes['columns'];
 	}
 
+	if ( isset( $attributes['displayImage'] ) && $attributes['displayImage'] ) {
+		$container_class .= ' cab-has-post-thumbnail';
+	}
+
 	if ( isset( $attributes['displayPostDate'] ) && $attributes['displayPostDate'] ) {
-		$container_class .= ' has-dates';
+		$container_class .= ' cab-has-post-date';
+	}
+
+	if ( ! empty( $attributes['displayPostAuthor'] ) ) {
+		$container_class .= ' cab-has-post-author';
+	}
+
+	if ( isset( $attributes['displayPostContent'] ) && $attributes['displayPostContent'] && isset( $attributes['postContent'] ) ) {
+		$container_class .= ( 'full_post' === $attributes['postContent'] )
+			? ' cab-has-post-content'
+			: ' cab-has-post-excerpt';
 	}
 
 	if ( isset( $attributes['className'] ) ) {
-		$container_class .= ' ' . $attributes['className'];
+		$container_class .= $attributes['className'];
+	}
+
+	if ( ! $query->have_posts() ) {
+		$container_class .= ' happyprime-content-aggregator-block_no-posts';
+	}
+
+	$wrapper_attributes = get_block_wrapper_attributes( array( 'class' => $container_class ) );
+
+	/**
+	 * Filter the wrapping element for the block.
+	 *
+	 * @param string $wrapper    The HTML element name with which to wrap the block. Default ul.
+	 * @param array  $attributes A list of block attributes.
+	 */
+	$wrapper = apply_filters( 'content_aggregator_block_wrapper', 'ul', $attributes );
+
+	ob_start();
+
+	if ( '' !== $wrapper ) {
+		echo '<' . $wrapper . ' ' . $wrapper_attributes . '>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 	}
 
 	if ( $query->have_posts() ) {
-		ob_start();
-		?>
-		<ul class="<?php echo esc_attr( $container_class ); ?>">
-			<?php
-			while ( $query->have_posts() ) {
-				$query->the_post();
-				$post = get_post( get_the_ID() );
-				?>
-				<li <?php post_class( 'lcpb-item' ); ?>>
-					<a href="<?php the_permalink(); ?>"><?php the_title(); ?></a>
-					<?php
-					if ( isset( $attributes['displayPostDate'] ) && $attributes['displayPostDate'] ) {
-						?>
-						<time datetime="<?php echo esc_attr( get_the_date( 'c' ) ); ?>" class="wp-block-latest-posts__post-date"><?php echo esc_html( get_the_date( '' ) ); ?></time>
-						<?php
-					}
-					if ( isset( $attributes['displayImage'] ) && $attributes['displayImage'] && has_post_thumbnail() ) {
-						$image_id = get_post_thumbnail_id();
-						echo wp_get_attachment_image( $image_id, $attributes['imageSize'], false );
-					}
-					if ( isset( $attributes['displayPostContent'] ) && $attributes['displayPostContent'] && isset( $attributes['postContent'] ) ) {
-						if ( 'excerpt' === $attributes['postContent'] ) {
-							$post_excerpt    = ( $post->post_excerpt ) ? $post->post_excerpt : $post->post_content;
-							$trimmed_excerpt = esc_html( wp_trim_words( $post_excerpt, $attributes['excerptLength'], '&hellip;' ) );
-							?>
-							<div class="wp-block-latest-posts__post-excerpt">
-								<?php echo wp_kses_post( $trimmed_excerpt ); ?>
-							</div>
-							<?php
-						}
-						if ( 'full_post' === $attributes['postContent'] ) {
-							?>
-							<div class="wp-block-latest-posts__post-full-content">
-								<?php echo wp_kses_post( html_entity_decode( $post->post_content, ENT_QUOTES, get_option( 'blog_charset' ) ) ); ?>
-							</div>
-							<?php
-						}
-					}
-					?>
-				</li>
-				<?php
-			}
-			?>
-		</ul>
-		<?php
-		$html = ob_get_clean();
+		while ( $query->have_posts() ) {
+			$query->the_post();
+			$post = get_post( get_the_ID() );
+			render_item( $post, $attributes );
+		}
 	} else {
-		// Render "No current items" message if no posts are available.
-		$container_class .= ' happyprime-content-aggregator-block_no-posts';
-
-		ob_start();
 		?>
-		<ul class="<?php echo esc_attr( $container_class ); ?>">
-			<li>No current items</li>
-		</ul>
+		<li><?php esc_html_e( 'No current items' ); ?></li>
 		<?php
-		$html = ob_get_clean();
+	}
+	wp_reset_postdata();
+
+	if ( '' !== $wrapper ) {
+		echo '</' . $wrapper . '>';
 	}
 
+	$html = ob_get_clean();
+
 	return $html;
+}
+
+/**
+ * Render the markup for an individual post item.
+ *
+ * @param WP_Post $post       The post.
+ * @param array   $attributes The block attributes.
+ */
+function render_item( $post, $attributes ) {
+	ob_start();
+	?>
+	<li <?php post_class( 'cab-item' ); ?>>
+		<a href="<?php the_permalink(); ?>"><?php the_title(); ?></a>
+		<?php
+		if ( ! empty( $attributes['displayPostAuthor'] ) ) {
+			?>
+			<div class="wp-block-latest-posts__post-author">
+				<span class="byline">By <span class="author"><?php echo esc_html( get_the_author() ); ?></span></span>
+			</div>
+			<?php
+		}
+		if ( isset( $attributes['displayPostDate'] ) && $attributes['displayPostDate'] ) {
+			?>
+			<time
+				class="wp-block-latest-posts__post-date"
+				datetime="<?php echo esc_attr( get_the_date( 'c' ) ); ?>"
+			><?php echo esc_html( get_the_date() ); ?></time>
+			<?php
+		}
+		if ( isset( $attributes['displayImage'] ) && $attributes['displayImage'] && has_post_thumbnail() ) {
+			$featured_image = get_the_post_thumbnail( get_the_ID(), $attributes['imageSize'] );
+
+			if ( $attributes['addLinkToFeaturedImage'] ) {
+				$featured_image = sprintf( '<a href="%1$s">%2$s</a>', get_permalink(), $featured_image );
+			}
+			?>
+			<figure class="wp-block-latest-posts__post-thumbnail">
+				<?php echo $featured_image; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+			</figure>
+			<?php
+		}
+		if ( isset( $attributes['displayPostContent'] ) && $attributes['displayPostContent'] && isset( $attributes['postContent'] ) ) {
+			if ( 'excerpt' === $attributes['postContent'] ) {
+				$post_excerpt    = ( $post->post_excerpt ) ? $post->post_excerpt : $post->post_content;
+				$trimmed_excerpt = esc_html( wp_trim_words( $post_excerpt, $attributes['excerptLength'], '&hellip;' ) );
+				?>
+				<div class="wp-block-latest-posts__post-excerpt">
+					<?php echo wp_kses_post( $trimmed_excerpt ); ?>
+				</div>
+				<?php
+			}
+			if ( 'full_post' === $attributes['postContent'] ) {
+				?>
+				<div class="wp-block-latest-posts__post-full-content">
+					<?php echo wp_kses_post( html_entity_decode( $post->post_content, ENT_QUOTES, get_option( 'blog_charset' ) ) ); ?>
+				</div>
+				<?php
+			}
+		}
+		?>
+	</li>
+	<?php
+	$html      = ob_get_clean();
+	$item_html = apply_filters( 'content_aggregator_block_item', $html, $post, $attributes );
+
+	echo wp_kses( $item_html, 'hp-cab' );
 }
 
 /**
@@ -363,43 +362,24 @@ function enqueue_block_editor_assets() {
 
 	$post_types = wp_json_encode( $post_types_w_sticky_support );
 
-	wp_enqueue_script(
-		'hp-latest-custom-post',
-		plugins_url( 'build/index.js', __DIR__ ),
-		array(
-			'wp-blocks',
-			'wp-i18n',
-			'wp-element',
-		),
-		block_version(),
-		true
-	);
-
 	wp_add_inline_script(
-		'hp-latest-custom-post',
-		"const lcpbStickyPostSupport = $post_types;"
-	);
-
-	wp_enqueue_style(
-		'hp-content-aggregator-block',
-		plugins_url( 'css/editor.css', __DIR__ ),
-		array(
-			'wp-edit-blocks',
-		),
-		block_version()
+		'happyprime-content-aggregator-editor-script',
+		"const cabStickyPostSupport = $post_types;",
+		'before'
 	);
 }
 
 /**
  * Register a REST API route for this block.
  */
-function register_route() {
+function register_posts_endpoint() {
 	register_rest_route(
-		'lcp/v1',
+		'content-aggregator-block/v1',
 		'posts',
 		array(
-			'methods'  => 'GET',
-			'callback' => __NAMESPACE__ . '\rest_response',
+			'methods'             => 'GET',
+			'callback'            => __NAMESPACE__ . '\posts_rest_response',
+			'permission_callback' => '__return_true',
 		)
 	);
 }
@@ -411,14 +391,16 @@ function register_route() {
  *
  * @return array Posts found using the provided parameters.
  */
-function rest_response( $request ) {
+function posts_rest_response( $request ) {
 	$attributes = array(
-		'customPostType' => $request->get_param( 'post_type' ) ? $request->get_param( 'post_type' ) : 'post,posts',
-		'taxonomies'     => $request->get_param( 'taxonomies' ) ? $request->get_param( 'taxonomies' ) : array(),
-		'taxRelation'    => $request->get_param( 'tax_relation' ) ? $request->get_param( 'tax_relation' ) : '',
-		'itemCount'      => $request->get_param( 'per_page' ) ? $request->get_param( 'per_page' ) : 3,
-		'order'          => $request->get_param( 'order' ) ? $request->get_param( 'order' ) : 'desc',
-		'orderBy'        => $request->get_param( 'order_by' ) ? $request->get_param( 'order_by' ) : 'date',
+		'authors'        => $request->get_param( 'authors' ) ?? '',
+		'customPostType' => $request->get_param( 'post_type' ) ?? 'post,posts',
+		'taxonomies'     => $request->get_param( 'taxonomies' ) ?? array(),
+		'taxRelation'    => $request->get_param( 'tax_relation' ) ?? '',
+		'itemCount'      => $request->get_param( 'per_page' ) ?? 3,
+		'order'          => $request->get_param( 'order' ) ?? 'desc',
+		'orderBy'        => $request->get_param( 'orderby' ) ?? 'date',
+		'orderByMetaKey' => $request->get_param( 'meta_key' ) ?? '',
 		'stickyPosts'    => $request->get_param( 'sticky_posts' ) ? true : false,
 	);
 	$args       = build_query_args( $attributes );
@@ -441,16 +423,21 @@ function rest_response( $request ) {
 
 					$image_sizes[ $size ] = ( ! $image ) ? false : $image[0];
 				}
+
+				$image_sizes['full'] = wp_get_attachment_image_src( $image_id, 'full' )[0];
 			}
 
 			$post = array(
 				'title'    => get_the_title(),
-				'date_gmt' => get_the_date( '' ),
+				'date_gmt' => get_the_date( 'c' ),
 				'link'     => get_the_permalink(),
 				'content'  => get_the_content(),
 				'excerpt'  => wp_strip_all_tags( get_the_excerpt(), true ),
 				'image'    => $image_sizes,
+				'author'   => get_the_author(),
 			);
+
+			$post = apply_filters( 'content_aggregator_block_endpoint_post_data', $post, get_the_ID() );
 
 			$posts[] = $post;
 		}
@@ -461,44 +448,51 @@ function rest_response( $request ) {
 }
 
 /**
- * Adds image size data to the editor settings so that it is immediately
- * available to the block.
- *
- * @param array $editor_settings Editor settings.
- *
- * @return array
+ * Register `meta` endpoint for fetching keys registered for a given post type.
  */
-function image_size_options( $editor_settings ) {
-	$image_options = array();
-
-	foreach ( get_intermediate_image_sizes() as $size ) {
-		$image_options[] = array(
-			'label' => ucwords( str_replace( array( '-', '_' ), ' ', $size ) ),
-			'value' => $size,
-		);
-	}
-
-	$editor_settings['lcpImageSizeOptions'] = $image_options;
-
-	return $editor_settings;
+function register_meta_endpoint() {
+	register_rest_route(
+		'content-aggregator-block/v1',
+		'meta',
+		array(
+			'methods'             => 'GET',
+			'callback'            => __NAMESPACE__ . '\meta_rest_response',
+			'permission_callback' => '__return_true',
+		)
+	);
 }
 
 /**
- * Filters classes for posts that have the added `lcpb-item` class.
+ * Return the meta keys registered for the provided post type.
+ *
+ * @param \WP_Request $request The incoming REST API request object.
+ *
+ * @return array Posts found using the provided parameters.
+ */
+function meta_rest_response( $request ) {
+	global $wp_meta_keys;
+
+	$subtype = $request->get_param( 'post_type' ) ?? 'post';
+
+	return array_keys( $wp_meta_keys['post'][ $subtype ] );
+}
+
+/**
+ * Filters classes for posts that have the added `cab-item` class.
  *
  * @param array $classes An array of post class names.
  * @param array $class   An array of additional class names added to the post.
  * @param int   $post_id The post ID.
  */
 function filter_post_classes( $classes, $class, $post_id ) {
-	if ( in_array( 'lcpb-item', $class, true ) ) {
+	if ( in_array( 'cab-item', $class, true ) ) {
 		$format = ( has_post_format( $post_id ) ) ? get_post_format( $post_id ) : 'standard';
 
-		// Filter out the `lcpb-item` flag and a handful of default classes.
+		// Filter out the `cab-item` flag and a handful of default classes.
 		$classes = array_diff(
 			$classes,
 			array(
-				'lcpb-item',
+				'cab-item',
 				'hentry',
 				'post-' . $post_id,
 				get_post_type( $post_id ),
@@ -507,9 +501,39 @@ function filter_post_classes( $classes, $class, $post_id ) {
 			)
 		);
 
-		// Prefix the remaining classes with `lcpb-`.
-		$classes = substr_replace( $classes, 'lcpb-', 0, 0 );
+		// Prefix the remaining classes with `cab-`.
+		$classes = substr_replace( $classes, 'cab-', 0, 0 );
 	}
 
 	return $classes;
+}
+
+/**
+ * Allow additional HTML elements and attributes that wp_kses_post() normally strips.
+ *
+ * @param array  $allowed The array of allowed HTML tags.
+ * @param string $context The context, such as "post", for the filter.
+ */
+function allow_additional_html( $allowed, $context ) {
+	if ( 'hp-cab' === $context ) {
+		$allowed = wp_kses_allowed_html( 'post' );
+
+		// Enable additional tags.
+		$allowed['meta'] = array( 'content' => true );
+		$allowed['time'] = array(
+			'class'    => true,
+			'datetime' => true,
+		);
+
+		// Enable itemprop, itemscope, and itemtype attributes on common tags.
+		$tags_for_atts = array( 'div', 'span', 'p', 'img', 'ul', 'ol', 'li', 'a', 'meta' );
+
+		foreach ( $tags_for_atts as $tag ) {
+			$allowed[ $tag ]['itemprop']  = true;
+			$allowed[ $tag ]['itemscope'] = true;
+			$allowed[ $tag ]['itemtype']  = true;
+		}
+	}
+
+	return $allowed;
 }
