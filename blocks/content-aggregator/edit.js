@@ -386,7 +386,6 @@ export default function ContentAggregatorEdit(props) {
 						},
 				  ];
 
-
 		return (
 			<div className="happyprime-block-cab_taxonomy-setting-wrapper">
 				{0 < index && (
