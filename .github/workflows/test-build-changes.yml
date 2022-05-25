@@ -1,0 +1,60 @@
+name: Node.js CI
+
+on: [ pull_request ]
+
+jobs:
+  build:
+    name: Check built files for changes
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout project
+      uses: actions/checkout@v2
+      with:
+        fetch-depth: 2
+    - name: Setup Node.js LTS
+      uses: actions/setup-node@v2
+      with:
+        node-version: 'lts/*'
+    - name: Install latest NPM
+      run: npm install -g npm
+    - name: Install project dependencies
+      run: npm ci
+    - name: Run build process(es)
+      run: npm run build --if-present
+    - name: Check Git status
+      id: git
+      shell: bash
+      run: |
+        RESULT=$(git status)
+        RESULT="${RESULT//'%'/'%25'}"
+        RESULT="${RESULT//$'\n'/'%0A'}"
+        RESULT="${RESULT//$'\r'/'%0D'}"
+        echo "::set-output name=changes::$RESULT"
+        echo "::set-output name=nodeVersion::$(node --version)"
+        echo "::set-output name=npmVersion::$(npm --version)"
+        if [[ $RESULT == *"Changes not staged"* || $RESULT == *"Untracked files"* ]]; then
+          exit 1
+        fi
+    - name: Comment on pull request
+      if: failure()
+      uses: actions/github-script@v4
+      with:
+        script: |
+          const output = `Changed files were detected after build. Please run project build workflows and check \`git status\` for any missed changes.
+
+          \`\`\`
+          ${{ steps.git.outputs.changes }}
+          \`\`\`
+
+          You may need to update your local NPM configuration if different than below:
+          * Node ${{ steps.git.outputs.nodeVersion }}
+          * NPM ${{ steps.git.outputs.npmVersion }}
+          `;
+
+          github.issues.createComment({
+            ...context.repo,
+            issue_number: context.payload.pull_request.number,
+            body: output
+          })

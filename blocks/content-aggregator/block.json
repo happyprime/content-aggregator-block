@@ -1,0 +1,103 @@
+{
+	"$schema": "https://json.schemastore.org/block.json",
+	"apiVersion": 2,
+	"name": "happyprime/content-aggregator",
+	"title": "Content Aggregator",
+	"category": "widgets",
+	"description": "A list of posts for a custom post type and/or taxonomy.",
+	"keywords": [ "recent", "latest", "custom", "post type" ],
+	"attributes": {
+		"customPostType": {
+			"type": "string",
+			"default": "post,posts"
+		},
+		"taxonomies": {
+			"type": "array",
+			"items": {
+				"type": "object"
+			}
+		},
+		"taxRelation": {
+			"type": "string",
+			"default": ""
+		},
+		"itemCount": {
+			"type": "integer",
+			"default": 3
+		},
+		"order": {
+			"type": "string",
+			"default": "desc"
+		},
+		"orderBy": {
+			"type": "string",
+			"default": "date"
+		},
+		"displayPostDate": {
+			"type": "boolean",
+			"default": false
+		},
+		"postLayout": {
+			"type": "string",
+			"default": "list"
+		},
+		"columns": {
+			"type": "integer",
+			"default": 2
+		},
+		"displayPostContent": {
+			"type": "boolean",
+			"default": false
+		},
+		"postContent": {
+			"type": "string",
+			"default": "excerpt"
+		},
+		"excerptLength": {
+			"type": "number",
+			"default": 55
+		},
+		"displayImage": {
+			"type": "boolean",
+			"default": false
+		},
+		"imageSize": {
+			"type": "string",
+			"default": "thumbnail"
+		},
+		"stickyPosts": {
+			"type": "boolean",
+			"default": true
+		},
+		"addLinkToFeaturedImage": {
+			"type": "boolean",
+			"default": false
+		},
+		"authors": {
+			"type": "string"
+		},
+		"displayPostAuthor": {
+			"type": "boolean",
+			"default": false
+		},
+		"orderByMetaKey": {
+			"type": "string",
+			"default": ""
+		},
+		"orderByMetaOrder": {
+			"type": "string",
+			"default": ""
+		},
+		"customTaxonomy": {},
+		"termID": {
+			"type": "number",
+			"default": 0
+		}
+	},
+	"supports": {
+		"align": true,
+		"html": false
+	},
+	"editorScript": "file:../../build/content-aggregator.js",
+	"editorStyle": "file:../../build/content-aggregator.css"
+}
