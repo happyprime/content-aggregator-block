@@ -26,3 +26,9 @@ This PHP filter can be used to modify the markup for an individual post item as 
 ### `content_aggregator_block_endpoint_post_data`
 
 This PHP filter can be used to modify the data returned by the REST API route registered by this plugin. It receives the default data and the post ID.
+
+## Changelog
+
+### 0.4.1
+
+* Allow CAB to be filtered by non-public taxonomies.
