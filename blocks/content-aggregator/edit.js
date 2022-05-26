@@ -148,7 +148,6 @@ export default function ContentAggregatorEdit(props) {
 
 							allTaxonomies.forEach((tax) => {
 								if (
-									tax.visibility.public &&
 									type.taxonomies.includes(tax.slug)
 								) {
 									taxonomySlugs.push({
