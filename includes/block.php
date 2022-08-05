@@ -274,7 +274,7 @@ function render( $attributes ) {
 	wp_reset_postdata();
 
 	if ( '' !== $wrapper ) {
-		echo '</' . $wrapper . '>';
+		echo '</' . $wrapper . '>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 	}
 
 	$html = ob_get_clean();

@@ -10,6 +10,9 @@
  * Requires PHP: 7.2
  * License: GPL2
  * License URI: https://www.gnu.org/licenses/gpl-2.0.html
+ *
+ * @package content-aggregator-block
  */
 
+// Load block.
 require_once __DIR__ . '/includes/block.php';
