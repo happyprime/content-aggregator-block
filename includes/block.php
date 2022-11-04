@@ -280,7 +280,7 @@ function render_item( $post, $attributes ) {
 	ob_start();
 	?>
 	<li <?php post_class( 'cab-item' ); ?>>
-		<a href="<?php the_permalink(); ?>"><?php the_title(); ?></a>
+		<a href="<?php the_permalink(); ?>" class="cab-item-title"><?php the_title(); ?></a>
 		<?php
 		if ( ! empty( $attributes['displayPostAuthor'] ) ) {
 			?>
