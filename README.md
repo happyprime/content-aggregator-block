@@ -29,6 +29,12 @@ This PHP filter can be used to modify the data returned by the REST API route re
 
 ## Changelog
 
+### 0.5.0
+
+* Enable scrolling in the multiple select interface used for terms.
+* Add a `cab-item-title` class to the anchor wrapping item titles.
+* Fix an issue looping through post IDs instead of objects.
+
 ### 0.4.1
 
 * Allow CAB to be filtered by non-public taxonomies.

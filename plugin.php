@@ -3,7 +3,7 @@
  * Plugin Name: Content Aggregator Block
  * Plugin URI: https://github.com/happyprime/content-aggregator-block/
  * Description: Display the latest posts for a specified post type, taxonomy, and term.
- * Version: 0.4.1
+ * Version: 0.5.0
  * Author: Happy Prime
  * Author URI: https://happyprime.co/
  * Requires at least: 5.9
