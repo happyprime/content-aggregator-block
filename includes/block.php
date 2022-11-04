@@ -45,7 +45,6 @@ function build_query_args( $attributes ) {
 		'order'          => $attributes['order'],
 		'orderby'        => $attributes['orderBy'],
 		'post_status'    => 'publish',
-		'fields'         => 'ids',
 	);
 
 	if ( 'meta_value' === $attributes['orderBy'] && $attributes['orderByMetaKey'] ) {
@@ -158,7 +157,6 @@ function build_query_args( $attributes ) {
 				'post_type'           => $post_type,
 				'post__in'            => $post_ids,
 				'orderby'             => 'post__in',
-				'fields'              => 'ids',
 				'no_found_rows'       => true,
 			);
 		} else {
