@@ -45,7 +45,6 @@ function build_query_args( $attributes ) {
 		'order'          => $attributes['order'],
 		'orderby'        => $attributes['orderBy'],
 		'post_status'    => 'publish',
-		'fields'         => 'ids',
 	);
 
 	if ( 'meta_value' === $attributes['orderBy'] && $attributes['orderByMetaKey'] ) {
@@ -117,39 +116,29 @@ function build_query_args( $attributes ) {
 		// all other criteria.
 		$stick_posts_query_args['ignore_sticky_posts'] = true;
 		$stick_posts_query_args['post__in']            = $sticky_posts;
+		$stick_posts_query_args['fields']              = 'ids';
 
 		$sticky_posts_query = new \WP_Query( $stick_posts_query_args );
 
-		$sticky_posts_in_params_count = $sticky_posts_query->found_posts;
-
 		// If posts were found, update query arguments accordingly.
 		// Otherwise, ignore sticky posts so they show in their natural order.
-		if ( $sticky_posts_in_params_count ) {
-			// Initialize an empty array for capturing post IDs.
-			$sticky_post_ids = array();
+		if ( count( $sticky_posts_query->posts ) ) {
 
-			// Add IDs of sticky posts to the `$sticky_post_ids` array.
-			while ( $sticky_posts_query->have_posts() ) {
-				$sticky_posts_query->the_post();
-				$sticky_post_ids[] = get_the_ID();
-			}
-
-			wp_reset_postdata();
-
-			if ( $sticky_posts_in_params_count < $posts_per_page ) {
+			if ( count( $sticky_posts_query->posts ) < $posts_per_page ) {
 				// If the item count is greater than the sticky posts count,
 				// add arguments to query for non sticky posts which meet the criteria.
-				$args['posts_per_page']      = $posts_per_page - $sticky_posts_in_params_count;
+				$args['posts_per_page']      = $posts_per_page - count( $sticky_posts_query->posts );
 				$args['ignore_sticky_posts'] = true;
-				$args['post__not_in']        = $sticky_post_ids;
+				$args['post__not_in']        = $sticky_posts_query->posts;
+				$args['fields']              = 'ids';
 
 				// Run the query and add the found post IDs to the array.
 				$posts_query = get_posts( $args );
-				$post_ids    = array_merge( $sticky_post_ids, $posts_query );
+				$post_ids    = array_merge( $sticky_posts_query->posts, $posts_query );
 			} else {
 				// If the item count is less than the sticky post count,
 				// reduce the number of IDs in the array accordingly.
-				$post_ids = array_slice( $sticky_post_ids, 0, $posts_per_page );
+				$post_ids = array_slice( $sticky_posts_query->posts, 0, $posts_per_page );
 			}
 
 			// Completely overwrite arguments.
@@ -158,7 +147,6 @@ function build_query_args( $attributes ) {
 				'post_type'           => $post_type,
 				'post__in'            => $post_ids,
 				'orderby'             => 'post__in',
-				'fields'              => 'ids',
 				'no_found_rows'       => true,
 			);
 		} else {
