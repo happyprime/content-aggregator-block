@@ -518,12 +518,20 @@ export default function ContentAggregatorEdit(props) {
 					value={`${orderBy}/${order}`}
 					options={[
 						{
-							label: __('Newest to Oldest'),
+							label: __('Published - Newest to Oldest'),
 							value: 'date/desc',
 						},
 						{
-							label: __('Oldest to Newest'),
+							label: __('Published - Oldest to Newest'),
 							value: 'date/asc',
+						},
+						{
+							label: __('Modified - Newest to Oldest'),
+							value: 'modified/desc',
+						},
+						{
+							label: __('Modified - Oldest to Newest'),
+							value: 'modified/asc',
 						},
 						{
 							label: __('A → Z'),
