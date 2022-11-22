@@ -29,6 +29,10 @@ This PHP filter can be used to modify the data returned by the REST API route re
 
 ## Changelog
 
+### 0.5.1
+
+* Add last modified date to sorting options.
+
 ### 0.5.0
 
 * Enable scrolling in the multiple select interface used for terms.
