@@ -277,6 +277,13 @@ function render( $attributes ) {
  * @param array   $attributes The block attributes.
  */
 function render_item( $post, $attributes ) {
+	$pre_render_html = apply_filters( 'content_aggregator_block_pre_render_item', false, $post, $attributes );
+
+	if ( false !== $pre_render_html ) {
+		echo $pre_render_html;
+		return;
+	}
+
 	ob_start();
 	?>
 	<li <?php post_class( 'cab-item' ); ?>>
