@@ -29,6 +29,10 @@ This PHP filter can be used to modify the data returned by the REST API route re
 
 ## Changelog
 
+### 0.5.2
+
+* Add `content_aggregator_block_pre_render_item` filter to allow a plugin or theme to fully take over the display of an item.
+
 ### 0.5.1
 
 * Add last modified date to sorting options.
