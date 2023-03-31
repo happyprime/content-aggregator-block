@@ -29,6 +29,11 @@ This PHP filter can be used to modify the data returned by the REST API route re
 
 ## Changelog
 
+### 0.5.3
+
+* Allow more than 100 items in a Content Aggregator block.
+* Update `wordpress/scripts` to 26.1.0.
+
 ### 0.5.2
 
 * Add `content_aggregator_block_pre_render_item` filter to allow a plugin or theme to fully take over the display of an item.
