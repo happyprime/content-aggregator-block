@@ -12,9 +12,6 @@
 	<!-- https://github.com/PHPCompatibility/PHPCompatibility#sniffing-your-code-for-compatibility-with-specific-php-versions -->
 	<config name="testVersion" value="7.4-"/>
 
-	<!-- https://github.com/PHPCompatibility/PHPCompatibilityWP -->
-	<rule ref="PHPCompatibilityWP"/>
-
 	<!-- Ignore 3rd party libraries loaded by NPM -->
 	<exclude-pattern>*/node_modules/*</exclude-pattern>
 
@@ -25,6 +22,13 @@
 	<exclude-pattern>*.asset.php</exclude-pattern>
 	<exclude-pattern>*.scss.php</exclude-pattern>
 
+	<rule ref="PHPCompatibilityWP"/>
+	<rule ref="VariableAnalysis" />
 	<rule ref="WordPress-Extra" />
 	<rule ref="WordPress-Docs" />
+
+	<!-- WordPress should allow short array syntax. -->
+	<rule ref="Generic.Arrays.DisallowShortArraySyntax">
+		<exclude name="Generic.Arrays.DisallowShortArraySyntax.Found"/>
+	</rule>
 </ruleset>

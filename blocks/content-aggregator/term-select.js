@@ -18,55 +18,55 @@ import { addQueryArgs } from '@wordpress/url';
  * @param {Object} props Component properties.
  * @return {WPElement} SelectControl component.
  */
-export default function TermSelect(props) {
+export default function TermSelect( props ) {
 	const { onChange, selectedTerms, taxonomy } = props;
 
-	const [termsList, setTermsList] = useState([]);
+	const [ termsList, setTermsList ] = useState( [] );
 
 	const isStillMounted = useRef();
 
-	const restSlug = taxonomy.split(',')[1];
+	const restSlug = taxonomy.split( ',' )[ 1 ];
 
-	useEffect(() => {
+	useEffect( () => {
 		isStillMounted.current = true;
 
-		apiFetch({
-			path: addQueryArgs(`/wp/v2/${restSlug}`, {
+		apiFetch( {
+			path: addQueryArgs( `/wp/v2/${ restSlug }`, {
 				per_page: -1,
-			}),
-		})
-			.then((data) => {
-				if (isStillMounted.current) {
-					const termData = data.map((term) => {
+			} ),
+		} )
+			.then( ( data ) => {
+				if ( isStillMounted.current ) {
+					const termData = data.map( ( term ) => {
 						return {
-							label: decodeEntities(term.name),
+							label: decodeEntities( term.name ),
 							value: term.id,
 						};
-					});
+					} );
 
-					setTermsList(termData);
+					setTermsList( termData );
 				}
-			})
-			.catch(() => {
-				if (isStillMounted.current) {
-					setTermsList([]);
+			} )
+			.catch( () => {
+				if ( isStillMounted.current ) {
+					setTermsList( [] );
 				}
-			});
+			} );
 
 		return () => {
 			isStillMounted.current = false;
 		};
-	}, [taxonomy]);
+	}, [ taxonomy ] );
 
 	return (
 		<SelectControl
 			className="happyprime-block-cab_taxonomy-term-select"
-			help={__('Ctrl/Cmd + click to select/deselect multiple terms')}
-			label={__('Term(s)')}
+			help={ __( 'Ctrl/Cmd + click to select/deselect multiple terms' ) }
+			label={ __( 'Term(s)' ) }
 			multiple
-			onChange={onChange}
-			options={termsList}
-			value={selectedTerms}
+			onChange={ onChange }
+			options={ termsList }
+			value={ selectedTerms }
 		/>
 	);
 }

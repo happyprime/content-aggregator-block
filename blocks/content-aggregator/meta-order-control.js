@@ -20,79 +20,83 @@ import { addQueryArgs } from '@wordpress/url';
  * @param {Object} props Component properties.
  * @return {WPElement} MetaOrderControl component.
  */
-export default function MetaOrderControl(props) {
+export default function MetaOrderControl( props ) {
 	const { blockProps } = props;
 
 	const { attributes, setAttributes } = blockProps;
 
 	const { customPostType, orderByMetaKey, orderByMetaOrder } = attributes;
 
-	const [keyOptions, setKeyOptions] = useState([]);
+	const [ keyOptions, setKeyOptions ] = useState( [] );
 
 	const isStillMounted = useRef();
 
-	useEffect(() => {
+	useEffect( () => {
 		isStillMounted.current = true;
 
-		apiFetch({
-			path: addQueryArgs(`/content-aggregator-block/v1/meta/`, {
+		apiFetch( {
+			path: addQueryArgs( `/content-aggregator-block/v1/meta/`, {
 				post_type: customPostType,
-			}),
-		})
-			.then((data) => {
-				if (isStillMounted.current) {
+			} ),
+		} )
+			.then( ( data ) => {
+				if ( isStillMounted.current ) {
 					const none = [
 						{
-							label: __('None'),
+							label: __( 'None' ),
 							value: '',
 						},
 					];
 
-					const keyData = data.map((key) => {
+					const keyData = data.map( ( key ) => {
 						return {
-							label: decodeEntities(key),
+							label: decodeEntities( key ),
 							value: key,
 						};
-					});
+					} );
 
-					setKeyOptions(none.concat(keyData));
+					setKeyOptions( none.concat( keyData ) );
 				}
-			})
-			.catch(() => {
-				if (isStillMounted.current) {
-					setKeyOptions([]);
+			} )
+			.catch( () => {
+				if ( isStillMounted.current ) {
+					setKeyOptions( [] );
 				}
-			});
+			} );
 
 		return () => {
 			isStillMounted.current = false;
 		};
-	}, [customPostType]);
+	}, [ customPostType ] );
 
 	return (
 		<div className="happyprime-block-cab_meta-order-settings">
 			<SelectControl
 				className="happyprime-block-cab_meta-order-key-select"
-				label={__('Meta Key')}
-				onChange={(value) => setAttributes({ orderByMetaKey: value })}
-				options={keyOptions}
-				value={orderByMetaKey}
+				label={ __( 'Meta Key' ) }
+				onChange={ ( value ) =>
+					setAttributes( { orderByMetaKey: value } )
+				}
+				options={ keyOptions }
+				value={ orderByMetaKey }
 			/>
 			<SelectControl
 				className="happyprime-block-cab_meta-order-order-select"
-				label={__('Order')}
-				onChange={(value) => setAttributes({ orderByMetaOrder: value })}
-				options={[
+				label={ __( 'Order' ) }
+				onChange={ ( value ) =>
+					setAttributes( { orderByMetaOrder: value } )
+				}
+				options={ [
 					{
-						label: __('ASC'),
+						label: __( 'ASC' ),
 						value: 'ASC',
 					},
 					{
-						label: __('DESC'),
+						label: __( 'DESC' ),
 						value: 'DESC',
 					},
-				]}
-				value={orderByMetaOrder}
+				] }
+				value={ orderByMetaOrder }
 			/>
 		</div>
 	);

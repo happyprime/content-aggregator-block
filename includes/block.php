@@ -280,7 +280,7 @@ function render_item( $post, $attributes ) {
 	$pre_render_html = apply_filters( 'content_aggregator_block_pre_render_item', false, $post, $attributes );
 
 	if ( false !== $pre_render_html ) {
-		echo $pre_render_html;
+		echo $pre_render_html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 		return;
 	}
 
