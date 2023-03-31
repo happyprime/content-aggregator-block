@@ -23,6 +23,7 @@ import {
 	Spinner,
 	ToggleControl,
 	ToolbarGroup,
+	__experimentalNumberControl as NumberControl,
 } from '@wordpress/components';
 
 import { useSelect } from '@wordpress/data';
@@ -503,14 +504,13 @@ export default function ContentAggregatorEdit(props) {
 						});
 					}}
 				/>
-				<RangeControl
+				<NumberControl
 					label={__('Number of Items')}
 					value={itemCount}
 					onChange={(value) => {
 						setAttributes({ itemCount: Number(value) });
 					}}
 					min={1}
-					max={100}
 				/>
 				<SelectControl
 					key="query-controls-order-select"
