@@ -552,6 +552,10 @@ export default function ContentAggregatorEdit( props ) {
 							label: __( 'Meta Value' ),
 							value: 'meta_value/desc',
 						},
+						{
+							label: __( 'Menu Order' ),
+							value: 'menu_order/asc'
+						}
 					] }
 					onChange={ ( value ) => {
 						const [ newOrderBy, newOrder ] = value.split( '/' );
