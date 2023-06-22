@@ -29,6 +29,14 @@ This PHP filter can be used to modify the data returned by the REST API route re
 
 ## Changelog
 
+### 0.6.0
+
+* Use post meta to identify which content contains content aggregator blocks.
+* Clear Kinsta page cache for URLs containing content aggregator blocks when content is updated.
+* Fix a class name attribute for byline authors.
+* Update project to use Node 18.
+* Update `wordpress/scripts` to 26.6.0.
+
 ### 0.5.3
 
 * Allow more than 100 items in a Content Aggregator block.
