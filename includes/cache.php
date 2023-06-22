@@ -16,7 +16,7 @@ add_action( 'pre_post_update', __NAMESPACE__ . '\maybe_purge_pre_post_update', 5
 add_action( 'wp_insert_post', __NAMESPACE__ . '\maybe_purge_wp_insert_post', 5, 2 );
 
 /**
- * Purge posts containing document collections when a document is updated.
+ * Purge posts containing content aggregator blocks when content is updated.
  *
  * @param int   $post_id The post ID.
  * @param array $post    The post object.
@@ -31,7 +31,7 @@ function maybe_purge_pre_post_update( int $post_id, array $post ) {
 }
 
 /**
- * Purge posts containing document collections when a document is updated.
+ * Purge posts containing content aggregator blocks when content is updated.
  *
  * @param int      $post_id The post ID.
  * @param \WP_Post $post    The post object.
