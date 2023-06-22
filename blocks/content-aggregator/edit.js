@@ -554,8 +554,8 @@ export default function ContentAggregatorEdit( props ) {
 						},
 						{
 							label: __( 'Menu Order' ),
-							value: 'menu_order/asc'
-						}
+							value: 'menu_order/asc',
+						},
 					] }
 					onChange={ ( value ) => {
 						const [ newOrderBy, newOrder ] = value.split( '/' );

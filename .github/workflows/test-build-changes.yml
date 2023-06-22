@@ -14,9 +14,9 @@ jobs:
       with:
         fetch-depth: 2
     - name: Setup Node.js LTS
-      uses: actions/setup-node@v2
+      uses: actions/setup-node@v3
       with:
-        node-version: 16
+        node-version: 18
     - name: Install latest NPM
       run: npm install -g npm
     - name: Install project dependencies
@@ -39,7 +39,7 @@ jobs:
         fi
     - name: Comment on pull request
       if: failure()
-      uses: actions/github-script@v4
+      uses: actions/github-script@v6
       with:
         script: |
           const output = `Changed files were detected after build. Please run project build workflows and check \`git status\` for any missed changes.
