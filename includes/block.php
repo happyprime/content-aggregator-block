@@ -14,6 +14,7 @@ add_action( 'rest_api_init', __NAMESPACE__ . '\register_posts_endpoint' );
 add_action( 'rest_api_init', __NAMESPACE__ . '\register_meta_endpoint' );
 add_filter( 'post_class', __NAMESPACE__ . '\filter_post_classes', 10, 3 );
 add_filter( 'wp_kses_allowed_html', __NAMESPACE__ . '\allow_additional_html', 10, 2 );
+add_action( 'wp_insert_post', __NAMESPACE__ . '\track', 10, 2 );
 
 /**
  * Registers the `happyprime/content-aggregator` block on server.
@@ -531,4 +532,18 @@ function allow_additional_html( $allowed, $context ) {
 	}
 
 	return $allowed;
+}
+
+/**
+ * Track content containing this block.
+ *
+ * @param int      $post_id The post ID.
+ * @param \WP_Post $post    The post object.
+ */
+function track( int $post_id, \WP_Post $post ) {
+	if ( has_block( 'happyprime/content-aggregator', $post ) ) {
+		update_post_meta( $post_id, '_cab_has_cab_block', time() );
+	} else {
+		delete_post_meta( $post_id, '_cab_has_cab_block' );
+	}
 }
