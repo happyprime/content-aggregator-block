@@ -14,5 +14,7 @@
  * @package content-aggregator-block
  */
 
-// Load block.
+// Require plugin files.
+require_once __DIR__ . '/includes/api.php';
 require_once __DIR__ . '/includes/block.php';
+require_once __DIR__ . '/includes/cache.php';
