@@ -796,7 +796,7 @@ export default function ContentAggregatorEdit( props ) {
 				{ displayPostAuthor && post.author && (
 					<div className="wp-block-latest-posts__post-author">
 						<span className="byline">
-							By <span clasNames="author">{ post.author }</span>
+							By <span className="author">{ post.author }</span>
 						</span>
 					</div>
 				) }
