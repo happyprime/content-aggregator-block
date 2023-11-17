@@ -39,7 +39,7 @@ jobs:
         fi
     - name: Comment on pull request
       if: failure()
-      uses: actions/github-script@v6
+      uses: actions/github-script@v7
       with:
         script: |
           const output = `Changed files were detected after build. Please run project build workflows and check \`git status\` for any missed changes.
