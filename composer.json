@@ -4,10 +4,9 @@
 	"minimum-stability": "stable",
     "require-dev": {
         "dealerdirect/phpcodesniffer-composer-installer": "*",
-        "phpcompatibility/php-compatibility": "*",
+        "phpcompatibility/php-compatibility": "dev-develop as 9.99.9",
         "phpcompatibility/phpcompatibility-wp": "*",
         "sirbrillig/phpcs-variable-analysis": "*",
-        "wp-cli/dist-archive-command": "^2.0",
         "wp-coding-standards/wpcs": "*"
     },
     "scripts": {
@@ -18,6 +17,9 @@
         "allow-plugins": {
             "composer/installers": true,
             "dealerdirect/phpcodesniffer-composer-installer": true
-        }
-    }
+		},
+		"platform": {
+			"php": "8.0"
+		}
+	}
 }

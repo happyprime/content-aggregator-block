@@ -476,17 +476,17 @@ function meta_rest_response( $request ) {
 /**
  * Filters classes for posts that have the added `cab-item` class.
  *
- * @param array $classes An array of post class names.
- * @param array $class   An array of additional class names added to the post.
- * @param int   $post_id The post ID.
+ * @param array $class_names An array of post class names.
+ * @param array $class_name  An array of additional class names added to the post.
+ * @param int   $post_id     The post ID.
  */
-function filter_post_classes( $classes, $class, $post_id ) {
-	if ( in_array( 'cab-item', $class, true ) ) {
+function filter_post_classes( $class_names, $class_name, $post_id ) {
+	if ( in_array( 'cab-item', $class_name, true ) ) {
 		$format = ( has_post_format( $post_id ) ) ? get_post_format( $post_id ) : 'standard';
 
 		// Filter out the `cab-item` flag and a handful of default classes.
-		$classes = array_diff(
-			$classes,
+		$class_names = array_diff(
+			$class_names,
 			array(
 				'cab-item',
 				'hentry',
@@ -498,10 +498,10 @@ function filter_post_classes( $classes, $class, $post_id ) {
 		);
 
 		// Prefix the remaining classes with `cab-`.
-		$classes = substr_replace( $classes, 'cab-', 0, 0 );
+		$class_names = substr_replace( $class_names, 'cab-', 0, 0 );
 	}
 
-	return $classes;
+	return $class_names;
 }
 
 /**
