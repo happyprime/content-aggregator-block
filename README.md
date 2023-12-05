@@ -29,6 +29,11 @@ This PHP filter can be used to modify the data returned by the REST API route re
 
 ## Changelog
 
+### 0.6.1
+
+* Add missing default value for `customTaxonomy` block attribute.
+* Bump minimum PHP support to 7.4.
+
 ### 0.6.0
 
 * Use post meta to identify which content contains content aggregator blocks.
