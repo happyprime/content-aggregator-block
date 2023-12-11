@@ -89,8 +89,8 @@
 			"default": ""
 		},
 		"customTaxonomy": {
-			"type": "string",
-			"default": ""
+			"type": "array",
+			"default": []
 		},
 		"termID": {
 			"type": "number",
