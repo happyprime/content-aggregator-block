@@ -29,6 +29,16 @@ This PHP filter can be used to modify the data returned by the REST API route re
 
 ## Changelog
 
+### 0.7.0
+
+* Add WP-CLI commands for auditing and upgrading deprecated attributes.
+* Improve fallback handling for deprecated `customTaxonomy` attribute.
+* Improve handling of the `customPostType` attribute.
+* Update PHP tooling to use Happy Prime coding standards.
+* Fix a bug when generating post format classes.
+
+1.0.0 will be a breaking change that eliminates the `customTaxonomy` attribute, `termID` attribute, and `happyprime/latest-custom-posts` transform handler.
+
 ### 0.6.1
 
 * Add missing default value for `customTaxonomy` block attribute.
