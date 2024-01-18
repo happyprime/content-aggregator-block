@@ -1,25 +1,27 @@
 {
-    "name": "happyprime/content-aggregator-block",
-    "type": "wordpress-plugin",
+	"name": "happyprime/content-aggregator-block",
+	"description": "Display the latest posts for a specified post type, taxonomy, and term.",
+	"version": "0.6.1",
+	"type": "wordpress-plugin",
+	"license": "GPLv2+",
 	"minimum-stability": "stable",
-    "require-dev": {
-        "dealerdirect/phpcodesniffer-composer-installer": "*",
-        "phpcompatibility/php-compatibility": "dev-develop as 9.99.9",
-        "phpcompatibility/phpcompatibility-wp": "*",
-        "sirbrillig/phpcs-variable-analysis": "*",
-        "wp-coding-standards/wpcs": "*"
-    },
-    "scripts": {
-        "phpcs": "vendor/bin/phpcs",
-        "phpcbf": "vendor/bin/phpcbf"
-    },
-    "config": {
-        "allow-plugins": {
-            "composer/installers": true,
-            "dealerdirect/phpcodesniffer-composer-installer": true
+	"config": {
+		"allow-plugins": {
+			"dealerdirect/phpcodesniffer-composer-installer": true,
+			"composer/installers": true,
+			"phpstan/extension-installer": true
 		},
 		"platform": {
-			"php": "8.0"
+			"php": "7.4"
 		}
+	},
+	"require-dev": {
+		"happyprime/coding-standards": "^0.0.2",
+		"phpcompatibility/php-compatibility": "dev-develop as 9.99.99"
+	},
+	"scripts": {
+		"phpcs": "vendor/bin/phpcs",
+		"phpcbf": "vendor/bin/phpcbf",
+		"phpstan": "vendor/bin/phpstan analyse --memory-limit=2048M"
 	}
 }
