@@ -56,21 +56,24 @@ function build_query_args( $attributes ) {
 		}
 	}
 
-	// If this is a previous version of the block, overwrite
-	// the `customTaxonomy` attribute using the new format.
-	if ( ! empty( $attributes['termID'] ) && ! empty( $attributes['customTaxonomy'] ) && ! is_array( $attributes['customTaxonomy'] ) ) {
-		$attributes['customTaxonomy'] = array(
+	// If this is a previous iteration of the block in which the `customTaxonomy`
+	// attribute was stored as a string, and the taxonomies attribute is not set,
+	// create a taxonomies attribute from the data.
+	if ( empty( $attributes['taxonomies'] ) && ! empty( $attributes['termID'] ) && ! empty( $attributes['customTaxonomy'] ) && ! is_array( $attributes['customTaxonomy'] ) ) {
+		$attributes['taxonomies'] = array(
 			array(
 				'slug'  => $attributes['customTaxonomy'],
 				'terms' => array( $attributes['termID'] ),
 			),
 		);
+	} elseif ( empty( $attributes['taxonomies'] ) && ! empty( $attributes['customTaxonomy'] ) && is_array( $attributes['customTaxonomy'] ) ) {
+		// If this is a previous iteration of the block in which the `customTaxonomy`
+		// attribute was stored as an array, and the taxonomies attribute is not set,
+		// create a taxonomies attribute from the data.
+		$attributes['taxonomies'] = $attributes['customTaxonomy'];
 	}
 
-	// Use the new `taxonomies` attribute if available.
-	$taxonomies = ( ! empty( $attributes['taxonomies'] ) )
-		? $attributes['taxonomies']
-		: $attributes['customTaxonomy'] ?? array();
+	$taxonomies = $attributes['taxonomies'];
 
 	if ( ! empty( $taxonomies ) ) {
 		$tax_query = array();
