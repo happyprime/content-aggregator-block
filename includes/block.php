@@ -489,7 +489,7 @@ function meta_rest_response( $request ) {
  */
 function filter_post_classes( $class_names, $class_name, $post_id ) {
 	if ( in_array( 'cab-item', $class_name, true ) ) {
-		$format = ( has_post_format( $post_id ) ) ? get_post_format( $post_id ) : 'standard';
+		$format = ( has_post_format( array(), $post_id ) ) ? get_post_format( $post_id ) : 'standard';
 
 		// Filter out the `cab-item` flag and a handful of default classes.
 		$class_names = array_diff(
