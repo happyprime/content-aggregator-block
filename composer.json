@@ -1,7 +1,7 @@
 {
 	"name": "happyprime/content-aggregator-block",
 	"description": "Display the latest posts for a specified post type, taxonomy, and term.",
-	"version": "0.6.1",
+	"version": "0.7.0",
 	"type": "wordpress-plugin",
 	"license": "GPLv2+",
 	"minimum-stability": "stable",
