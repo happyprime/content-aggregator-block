@@ -9,7 +9,7 @@
 	"attributes": {
 		"customPostType": {
 			"type": "string",
-			"default": "post,posts"
+			"default": "post"
 		},
 		"taxonomies": {
 			"type": "array",

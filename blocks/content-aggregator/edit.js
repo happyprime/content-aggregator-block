@@ -234,6 +234,17 @@ export default function ContentAggregatorEdit( props ) {
 				}
 			} );
 
+		// Handle a case where customPostType has multiple slugs (e.g. document,document).
+		if (
+			attributes.customPostType &&
+			attributes.customPostType !==
+				attributes.customPostType.split( ',' )[ 0 ]
+		) {
+			setAttributes( {
+				customPostType: attributes.customPostType.split( ',' )[ 0 ],
+			} );
+		}
+
 		// Handle deprecated attributes.
 		if (
 			isStillMounted.current &&
