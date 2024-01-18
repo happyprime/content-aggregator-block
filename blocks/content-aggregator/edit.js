@@ -234,23 +234,38 @@ export default function ContentAggregatorEdit( props ) {
 				}
 			} );
 
-		// Handle deprecated taxonomy attributes if needed.
+		// Handle a case where customPostType has multiple slugs (e.g. document,document).
 		if (
-			isStillMounted.currrent &&
+			attributes.customPostType &&
+			attributes.customPostType !==
+				attributes.customPostType.split( ',' )[ 0 ]
+		) {
+			setAttributes( {
+				customPostType: attributes.customPostType.split( ',' )[ 0 ],
+			} );
+		}
+
+		// Handle deprecated attributes.
+		if (
+			isStillMounted.current &&
 			( attributes.customTaxonomy || attributes.termID )
 		) {
-			const taxonomy = [
-				{
-					slug: attributes.customTaxonomy,
-					terms: [ `${ attributes.termID }` ],
-				},
-			];
+			// If customTaxonomy is an array of data, copy it to the taxonomies attribute.
+			if (
+				! taxonomies?.length &&
+				Array.isArray( attributes.customTaxonomy )
+			) {
+				setAttributes( {
+					taxonomies: attributes.customTaxonomy,
+					customTaxonomy: undefined,
+				} );
+			}
 
-			setAttributes( {
-				taxonomies: taxonomy,
-				customTaxonomy: undefined,
-				termID: undefined,
-			} );
+			// If taxonomies is already an array and customTaxonomy is set, just remove
+			// the customTaxonomy attribute.
+			if ( Array.isArray( taxonomies ) && attributes.customTaxonomy ) {
+				setAttributes( { customTaxonomy: undefined } );
+			}
 		}
 
 		return () => {

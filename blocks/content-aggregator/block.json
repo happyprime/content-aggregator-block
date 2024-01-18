@@ -9,7 +9,7 @@
 	"attributes": {
 		"customPostType": {
 			"type": "string",
-			"default": "post,posts"
+			"default": "post"
 		},
 		"taxonomies": {
 			"type": "array",
@@ -89,8 +89,8 @@
 			"default": ""
 		},
 		"customTaxonomy": {
-			"type": "string",
-			"default": ""
+			"type": "array",
+			"default": []
 		},
 		"termID": {
 			"type": "number",
