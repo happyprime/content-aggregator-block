@@ -170,7 +170,7 @@ function build_query_args( $attributes ) {
  */
 function render( $attributes ) {
 	$defaults   = array(
-		'customPostType'     => 'post,posts',
+		'customPostType'     => 'post',
 		'taxonomies'         => array(),
 		'taxRelation'        => '',
 		'itemCount'          => 3,
@@ -393,7 +393,7 @@ function register_posts_endpoint() {
 function posts_rest_response( $request ) {
 	$attributes = array(
 		'authors'        => $request->get_param( 'authors' ) ?? '',
-		'customPostType' => $request->get_param( 'post_type' ) ?? 'post,posts',
+		'customPostType' => $request->get_param( 'post_type' ) ?? 'post',
 		'taxonomies'     => $request->get_param( 'taxonomies' ) ?? array(),
 		'taxRelation'    => $request->get_param( 'tax_relation' ) ?? '',
 		'itemCount'      => $request->get_param( 'per_page' ) ?? 3,
