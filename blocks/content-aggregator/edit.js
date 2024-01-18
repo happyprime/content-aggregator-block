@@ -234,23 +234,49 @@ export default function ContentAggregatorEdit( props ) {
 				}
 			} );
 
-		// Handle deprecated taxonomy attributes if needed.
+		// Handle deprecated attributes.
 		if (
-			isStillMounted.currrent &&
+			isStillMounted.current &&
 			( attributes.customTaxonomy || attributes.termID )
 		) {
-			const taxonomy = [
-				{
-					slug: attributes.customTaxonomy,
-					terms: [ `${ attributes.termID }` ],
-				},
-			];
+			// If customTaxonomy is a string and the termID is a number, create
+			// the corresponding value for the taxonomies attribute. This was
+			// possible in a very early iteration of CAB.
+			if (
+				! taxonomies?.length &&
+				'string' === typeof attributes.customTaxonomy &&
+				! isNaN( attributes.termID )
+			) {
+				const taxonomy = [
+					{
+						slug: attributes.customTaxonomy,
+						terms: [ `${ attributes.termID }` ],
+					},
+				];
 
-			setAttributes( {
-				taxonomies: taxonomy,
-				customTaxonomy: undefined,
-				termID: undefined,
-			} );
+				setAttributes( {
+					taxonomies: taxonomy,
+					customTaxonomy: undefined,
+					termID: undefined,
+				} );
+			}
+
+			// If customTaxonomy is an array of data, copy it to the taxonomies attribute.
+			if (
+				! taxonomies?.length &&
+				Array.isArray( attributes.customTaxonomy )
+			) {
+				setAttributes( {
+					taxonomies: attributes.customTaxonomy,
+					customTaxonomy: undefined,
+				} );
+			}
+
+			// If taxonomies is already an array and customTaxonomy is set, just remove
+			// the customTaxonomy attribute.
+			if ( Array.isArray( taxonomies ) && attributes.customTaxonomy ) {
+				setAttributes( { customTaxonomy: undefined } );
+			}
 		}
 
 		return () => {
