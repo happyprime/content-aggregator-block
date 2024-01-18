@@ -8,6 +8,10 @@
 
 namespace HappyPrime\ContentAggregator\Block;
 
+use WP_Post;
+use WP_Query;
+use WP_REST_Request;
+
 add_action( 'init', __NAMESPACE__ . '\register_block' );
 add_action( 'enqueue_block_editor_assets', __NAMESPACE__ . '\enqueue_block_editor_assets' );
 add_action( 'rest_api_init', __NAMESPACE__ . '\register_posts_endpoint' );
@@ -122,7 +126,7 @@ function build_query_args( $attributes ) {
 		$stick_posts_query_args['post__in']            = $sticky_posts;
 		$stick_posts_query_args['fields']              = 'ids';
 
-		$sticky_posts_query = new \WP_Query( $stick_posts_query_args );
+		$sticky_posts_query = new WP_Query( $stick_posts_query_args );
 
 		// If posts were found, update query arguments accordingly.
 		// Otherwise, ignore sticky posts so they show in their natural order.
@@ -194,7 +198,7 @@ function render( $attributes ) {
 	);
 	$attributes = wp_parse_args( $attributes, $defaults );
 	$args       = build_query_args( $attributes );
-	$query      = new \WP_Query( $args );
+	$query      = new WP_Query( $args );
 
 	$container_class = 'wp-block-latest-posts wp-block-latest-posts__list happyprime-content-aggregator-block';
 
@@ -386,7 +390,7 @@ function register_posts_endpoint() {
 /**
  * Return posts based on the provided parameters.
  *
- * @param \WP_Request $request The incoming REST API request object.
+ * @param WP_REST_Request $request The incoming REST API request object.
  *
  * @return array Posts found using the provided parameters.
  */
@@ -403,7 +407,7 @@ function posts_rest_response( $request ) {
 		'stickyPosts'    => $request->get_param( 'sticky_posts' ) ? true : false,
 	);
 	$args       = build_query_args( $attributes );
-	$query      = new \WP_Query( $args );
+	$query      = new WP_Query( $args );
 
 	// Assume no posts match the criteria by default.
 	$posts = array();
@@ -464,7 +468,7 @@ function register_meta_endpoint() {
 /**
  * Return the meta keys registered for the provided post type.
  *
- * @param \WP_Request $request The incoming REST API request object.
+ * @param WP_REST_Request $request The incoming REST API request object.
  *
  * @return array Posts found using the provided parameters.
  */
@@ -540,10 +544,10 @@ function allow_additional_html( $allowed, $context ) {
 /**
  * Track content containing this block.
  *
- * @param int      $post_id The post ID.
- * @param \WP_Post $post    The post object.
+ * @param int     $post_id The post ID.
+ * @param WP_Post $post    The post object.
  */
-function track( int $post_id, \WP_Post $post ) {
+function track( int $post_id, WP_Post $post ) {
 	if ( has_block( 'happyprime/content-aggregator', $post ) ) {
 		update_post_meta( $post_id, '_cab_has_cab_block', time() );
 	} else {
