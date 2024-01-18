@@ -544,7 +544,7 @@ function allow_additional_html( $allowed, $context ) {
 /**
  * Track content containing this block.
  *
- * @param int      $post_id The post ID.
+ * @param int     $post_id The post ID.
  * @param WP_Post $post    The post object.
  */
 function track( int $post_id, WP_Post $post ) {
