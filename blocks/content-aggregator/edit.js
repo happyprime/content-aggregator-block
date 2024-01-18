@@ -250,28 +250,6 @@ export default function ContentAggregatorEdit( props ) {
 			isStillMounted.current &&
 			( attributes.customTaxonomy || attributes.termID )
 		) {
-			// If customTaxonomy is a string and the termID is a number, create
-			// the corresponding value for the taxonomies attribute. This was
-			// possible in a very early iteration of CAB.
-			if (
-				! taxonomies?.length &&
-				'string' === typeof attributes.customTaxonomy &&
-				! isNaN( attributes.termID )
-			) {
-				const taxonomy = [
-					{
-						slug: attributes.customTaxonomy,
-						terms: [ `${ attributes.termID }` ],
-					},
-				];
-
-				setAttributes( {
-					taxonomies: taxonomy,
-					customTaxonomy: undefined,
-					termID: undefined,
-				} );
-			}
-
 			// If customTaxonomy is an array of data, copy it to the taxonomies attribute.
 			if (
 				! taxonomies?.length &&
