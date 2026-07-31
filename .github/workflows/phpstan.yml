@@ -1,5 +1,7 @@
+# Run PHPStan and comment on the pull request with any issues.
+#
 # This file is managed in https://github.com/happyprime/projects
-name: Verify build (Node 24)
+name: PHPStan (Default, PHP 8.3)
 
 on: pull_request
 
@@ -14,6 +16,6 @@ permissions:
 
 jobs:
   call-workflow:
-    uses: happyprime/workflows/.github/workflows/verify-build.yml@trunk
+    uses: happyprime/workflows/.github/workflows/phpstan.yml@trunk
     with:
-      node-version: 24
+      php-version: '8.3'
