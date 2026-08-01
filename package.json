@@ -31,7 +31,7 @@
 		"lint:js": "wp-scripts lint-js",
 		"fix:js": "wp-scripts lint-js --fix",
 		"start": "wp-scripts start",
-		"lint:package": "node ./node_modules/npm-package-json-lint/dist/cli.js ./"
+		"lint:package": "node ./node_modules/npm-package-json-lint/dist/cli.js ./package.json"
 	},
 	"npmpackagejsonlint": {
 		"extends": "@wordpress/npm-package-json-lint-config"
