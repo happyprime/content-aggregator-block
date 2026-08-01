@@ -16,12 +16,27 @@
 		}
 	},
 	"require-dev": {
-		"happyprime/coding-standards": "^0.0.2",
-		"phpcompatibility/php-compatibility": "dev-develop as 9.99.99"
+		"happyprime/coding-standards": "*",
+		"phpcompatibility/php-compatibility": "9.99.9"
 	},
 	"scripts": {
 		"phpcs": "vendor/bin/phpcs",
 		"phpcbf": "vendor/bin/phpcbf",
 		"phpstan": "vendor/bin/phpstan analyse --memory-limit=2048M"
-	}
+	},
+	"repositories": [
+		{
+			"type": "package",
+			"package": {
+				"name": "phpcompatibility/php-compatibility",
+				"type": "phpcodesniffer-standard",
+				"version": "9.99.9",
+				"source": {
+					"url": "https://github.com/PHPCompatibility/PHPCompatibility.git",
+					"type": "git",
+					"reference": "9f7142356b5674164a6f6dbe12a7a1bcc632db21"
+				}
+			}
+		}
+	]
 }
